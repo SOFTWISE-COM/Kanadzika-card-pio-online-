@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#016369">
+<title>Painel · Kanandzika</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#0c1a1b;color:#e6f4f3;font-family:Roboto,system-ui,sans-serif;padding-bottom:40px}
+header{position:sticky;top:0;background:#016369;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+header b{font-size:18px}header span{font-size:12px;opacity:.85}
+#login{padding:24px 16px;display:grid;gap:12px}
+input,button{font:inherit;border-radius:12px;border:0;padding:14px;font-size:16px}
+input{background:#142c2d;color:#e6f4f3;border:1px solid #244243}
+button{background:#0a8b92;color:#fff;font-weight:700}
+#lista{padding:12px 16px;display:grid;gap:12px}
+.c{background:#142c2d;border-left:6px solid #3de0d8;border-radius:14px;padding:14px}
+.c.preparando{border-color:#f5a623}.c.pronto{border-color:#1faa59}
+.c.entregue,.c.cancelado{opacity:.5;border-color:#5d7b7d}
+.c h3{margin:0 0 6px;font-size:17px}.c small{color:#8db0b0}
+.it{margin:8px 0;line-height:1.5}
+.bt{display:flex;gap:8px;margin-top:10px}.bt button{flex:1;padding:11px;font-size:14px}
+.bt .x{background:#3a2a2a;flex:0 0 auto}
+.vazio{color:#8db0b0;text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<header><b>🍔 Pedidos</b><span id="st"></span></header>
+<div id="login">
+  <input id="pw" type="password" placeholder="Senha do painel" autocomplete="current-password">
+  <button id="ent">Entrar</button><div id="er" style="color:#ff8a80"></div>
+</div>
+<div id="lista" hidden></div>
+<script>
+const $=s=>document.querySelector(s);
+const MT=n=>Number(n).toLocaleString("pt-PT")+" MT";
+let key=sessionStorage.getItem("kzk")||"",vistos=null,ac,timer;
+const H=()=>({"x-admin-key":key,"Content-Type":"application/json"});
+function bip(){try{ac=ac||new AudioContext();[880,1175].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.setValueAtTime(.2,ac.currentTime+i*.18);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+i*.18+.3);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*.18);o.stop(ac.currentTime+i*.18+.3)})}catch(e){}}
+const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const PROX={novo:["preparando","Preparar"],preparando:["pronto","Pronto"],pronto:["entregue","Entregue"]};
+async function carregar(){
+  let r;try{r=await fetch("/api/pedidos",{headers:H()})}catch(e){$("#st").textContent="sem ligação";return}
+  if(r.status===401){sessionStorage.removeItem("kzk");key="";clearInterval(timer);$("#login").hidden=false;$("#lista").hidden=true;$("#er").textContent="Senha errada.";return}
+  const j=await r.json();if(!j.ok)return;
+  $("#login").hidden=true;$("#lista").hidden=false;
+  const ids=j.pedidos.map(p=>p.id);
+  if(vistos&&ids.some(i=>!vistos.has(i)))bip();
+  vistos=new Set(ids);
+  $("#st").textContent="atualizado "+new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+  $("#lista").innerHTML=j.pedidos.length?j.pedidos.map(p=>{
+    const hora=new Date(p.criado_em).toLocaleTimeString("pt-PT",{timeZone:"Africa/Maputo",hour:"2-digit",minute:"2-digit"});
+    const quem=p.tipo==="mesa"?`🪑 Mesa ${esc(p.mesa)}`:`🛵 ${esc(p.cliente)} · +258 ${esc(p.telefone)}<br>📍 ${esc(p.bairro)}${p.referencia?" · "+esc(p.referencia):""}`;
+    const nx=PROX[p.estado];
+    return `<div class="c ${p.estado}"><h3>#${p.id} · ${MT(p.total)}</h3><small>${hora} · ${p.estado}</small><div class="it">${quem}</div>
+    <div class="it">${p.itens.map(i=>`${i.q}x ${esc(i.nome)}`).join("<br>")}${p.taxa?`<br>🚚 Taxa ${MT(p.taxa)}`:""}${p.obs?`<br>📝 ${esc(p.obs)}`:""}</div>
+    <div class="bt">${nx?`<button data-i="${p.id}" data-e="${nx[0]}">${nx[1]}</button>`:""}${["novo","preparando","pronto"].includes(p.estado)?`<button class="x" data-i="${p.id}" data-e="cancelado">✕</button>`:""}</div></div>`}).join(""):`<div class="vazio">Sem pedidos ainda.</div>`;
+}
+$("#lista").onclick=async e=>{const b=e.target.closest("button[data-i]");if(!b)return;b.disabled=true;
+  await fetch("/api/pedidos",{method:"PATCH",headers:H(),body:JSON.stringify({id:+b.dataset.i,estado:b.dataset.e})});carregar()};
+function entrar(){key=$("#pw").value||key;if(!key)return;sessionStorage.setItem("kzk",key);$("#er").textContent="";bip.skip=1;carregar();clearInterval(timer);timer=setInterval(carregar,10000)}
+$("#ent").onclick=entrar;$("#pw").onkeydown=e=>{if(e.key==="Enter")entrar()};
+if(key)entrar();
+</script>
+</body>
+</html>
