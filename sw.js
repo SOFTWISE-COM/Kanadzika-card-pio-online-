@@ -1,5 +1,5 @@
-const CACHE='kanandzika-v4';
-const FILES=['./','index.html','home.html','manifest.json','assets/logo.png','assets/intro1.png','assets/intro2.png','assets/intro3.png','assets/batata.png','assets/icon-192.png','assets/icon-512.png','assets/icon-maskable-512.png','assets/apple-touch-icon.png'];
+const CACHE='kanandzika-v5';
+const FILES=['./','index.html','home.html','manifest.json','rastreio.js','assets/logo.png','assets/intro1.png','assets/intro2.png','assets/intro3.png','assets/batata.png','assets/icon-192.png','assets/icon-512.png','assets/icon-maskable-512.png','assets/apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{

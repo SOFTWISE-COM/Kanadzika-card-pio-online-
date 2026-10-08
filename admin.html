@@ -71,6 +71,19 @@ button{cursor:pointer}
 .ot b{color:var(--cyan);font-size:14px}
 .empty{color:var(--muted);text-align:center;font-size:13px;padding:22px 8px;line-height:1.5}
 #status{color:var(--muted);font-size:12px;margin-bottom:10px}
+.trkbtn{margin-top:8px;width:100%;height:40px;border-radius:12px;border:1px solid var(--cyan);background:rgba(0,229,255,.12);color:var(--cyan);font-weight:bold;font-size:13px}
+#ent{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+#ent .eh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+#ent .eh b{font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#entMap{flex:1;min-height:200px;background:#0a4248}
+#ent .eb{padding:14px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+#entEta{font-size:22px;font-weight:bold;color:var(--cyan);margin-bottom:4px}
+#entSub{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:10px}
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.eg .btn{height:46px;font-size:14px}
+.btn.alt{background:var(--card);color:#fff;border:1px solid var(--cyan)}
+.btn.stop{background:#c0392b;color:#fff}
+.lnk{display:block;text-align:center;color:var(--cyan);font-size:13px;margin-top:10px;text-decoration:none}
 </style>
 </head>
 <body>
@@ -146,6 +159,24 @@ button{cursor:pointer}
   </div>
 </section>
 
+<section id="ent" class="hidden">
+  <div class="eh"><button class="mini" onclick="fecharEntrega()">← Voltar</button><b id="entTitle">Entrega</b></div>
+  <div id="entMap"></div>
+  <div class="eb">
+    <div id="entEta">—</div>
+    <div id="entSub"></div>
+    <div class="eg">
+      <button class="btn" id="entGo" onclick="toggleGps()">▶ Iniciar entrega</button>
+      <button class="btn alt" onclick="concluirEntrega()">✔ Entrega concluída</button>
+    </div>
+    <a class="lnk" id="entNav" target="_blank" rel="noopener" style="display:none">🧭 Abrir rota no Google Maps</a>
+    <a class="lnk" id="entWa" target="_blank" rel="noopener" style="display:none">💬 Falar com o cliente no WhatsApp</a>
+  </div>
+</section>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="rastreio.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://uuuibhgbwqlbylaijwuh.supabase.co';
@@ -282,7 +313,8 @@ function renderOrders(){
     return '<div class="ord"><div class="oh"><b>#'+String(r.id).padStart(3,'0')+'</b><span class="tag">'+esc(r.type)+'</span><span class="dt">'+esc(fmtDate(r.created_at))+'</span></div>'+
       '<div class="on">'+esc(r.name)+' · <a href="https://wa.me/258'+esc(ph)+'" target="_blank" rel="noopener">'+esc(fmtPhone(r.phone))+'</a></div>'+
       '<div class="oi">'+items.map(i=>esc(i.q)+'x '+esc(i.n)).join('<br>')+'</div>'+
-      '<div class="ot"><span>'+where+(r.type==='Delivery'?' · Entrega '+mt(r.fee):'')+'</span><b>'+mt(r.total)+'</b></div></div>';
+      '<div class="ot"><span>'+where+(r.type==='Delivery'?' · Entrega '+mt(r.fee):'')+'</span><b>'+mt(r.total)+'</b></div>'+
+      (r.track_id?'<button class="trkbtn" onclick="abrirEntrega('+Number(r.id)+')">🛵 Entrega em tempo real</button>':'')+'</div>';
   }).join('');
 }
 
@@ -301,6 +333,101 @@ function exportCsv(which){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+
+/* ---------- entrega em tempo real ---------- */
+let E={ord:null,map:null,mk:{},cli:null,me:null,watch:null,ch:null,poll:null,push:0,fit:false,wake:null,on:false};
+function stopGps(){
+  if(E.watch!=null){navigator.geolocation.clearWatch(E.watch);E.watch=null;}
+  if(E.wake){try{E.wake.release();}catch(e){}E.wake=null;}
+  E.on=false;$('entGo').textContent='▶ Iniciar entrega';$('entGo').classList.remove('stop');
+}
+async function abrirEntrega(id){
+  const r=orders.find(o=>Number(o.id)===id);if(!r||!r.track_id)return;
+  stopGps();
+  Object.values(E.mk).forEach(m=>m.remove());
+  E={ord:r,map:E.map,mk:{},cli:null,me:null,watch:null,ch:null,poll:null,push:0,fit:false,wake:null,on:false};
+  $('ent').classList.remove('hidden');
+  $('entTitle').textContent='#'+String(r.id).padStart(3,'0')+' · '+(r.name||'Cliente')+' · '+(r.type==='Delivery'?(r.bairro||''):'Mesa '+(r.mesa||''));
+  $('entEta').textContent='A ligar…';$('entSub').textContent='';
+  const ph=String(r.phone||'').replace(/\D/g,'');
+  if(ph){$('entWa').href='https://wa.me/258'+ph;$('entWa').style.display='block';}else $('entWa').style.display='none';
+  $('entNav').style.display='none';
+  if(!E.map)E.map=Rastreio.mapa('entMap');
+  setTimeout(()=>E.map.invalidateSize(),150);
+  const {data}=await sb.from('order_tracking').select('*').eq('track_id',r.track_id).maybeSingle();
+  setCliente(data);
+  E.ch=sb.channel('adm-'+r.track_id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'order_tracking',filter:'track_id=eq.'+r.track_id},p=>setCliente(p.new))
+    .subscribe();
+  E.poll=setInterval(async()=>{
+    const {data}=await sb.from('order_tracking').select('*').eq('track_id',r.track_id).maybeSingle();
+    setCliente(data);
+  },10000);
+}
+function setCliente(t){
+  if(!t)return;
+  if(t.cust_lat!=null){
+    E.cli={lat:t.cust_lat,lng:t.cust_lng,at:t.cust_at};
+    Rastreio.marcar(E.map,E.mk,'cli',E.cli,'🏠');
+    $('entNav').href='https://www.google.com/maps/dir/?api=1&destination='+E.cli.lat+','+E.cli.lng+'&travelmode=driving';
+    $('entNav').style.display='block';
+  }
+  refreshEntrega();
+}
+async function refreshEntrega(){
+  if(!E.ord)return;
+  if(!E.cli){
+    $('entEta').textContent=E.on?'A partilhar a sua posição':'À espera do cliente…';
+    $('entSub').textContent='O cliente ainda não partilhou a localização (tem de abrir «Acompanhar entrega» no telemóvel dele).';
+    return;
+  }
+  Rastreio.enquadrar(E.map,[E.me,E.cli],!E.fit);E.fit=true;
+  if(!E.me){
+    $('entEta').textContent='Cliente localizado 🏠';
+    $('entSub').textContent='Toque em «Iniciar entrega» para partilhar a sua posição e ver o tempo estimado.';
+    return;
+  }
+  const e=await Rastreio.eta(E.me,E.cli);
+  $('entEta').textContent=e.metros<40?'Chegou ao cliente 🎉':'Chega em ≈ '+Rastreio.fmtMin(e.segundos);
+  $('entSub').textContent=Rastreio.fmtDist(e.metros)+' até ao cliente'+(e.aprox?' (estimativa)':'')+' · posição do cliente '+Rastreio.ago(E.cli.at||new Date().toISOString());
+}
+async function toggleGps(){
+  if(E.on){stopGps();$('entSub').textContent='Partilha parada. O cliente deixou de ver a sua posição.';return;}
+  if(!navigator.geolocation){alert('Este telemóvel não permite localização.');return;}
+  E.on=true;$('entGo').textContent='⏸ Parar partilha';$('entGo').classList.add('stop');
+  try{if(navigator.wakeLock)E.wake=await navigator.wakeLock.request('screen');}catch(e){}
+  E.watch=navigator.geolocation.watchPosition(pos=>{
+    E.me={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    Rastreio.marcar(E.map,E.mk,'me',E.me,'🛵');
+    if(Date.now()-E.push>5000){
+      E.push=Date.now();
+      sb.from('driver_location').upsert({track_id:E.ord.track_id,lat:E.me.lat,lng:E.me.lng,heading:pos.coords.heading,speed:pos.coords.speed,updated_at:new Date().toISOString()},{onConflict:'track_id'})
+        .then(r=>{if(r.error)$('entSub').textContent='Erro ao enviar posição: '+r.error.message;});
+    }
+    refreshEntrega();
+  },err=>{
+    stopGps();
+    $('entSub').textContent='Não consegui obter o GPS. Ative a localização do telemóvel e permita ao navegador.';
+  },{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
+}
+// o ecrã ligado precisa de ser pedido outra vez se a app voltar ao primeiro plano
+document.addEventListener('visibilitychange',async()=>{
+  if(!document.hidden&&E.on&&!E.wake&&navigator.wakeLock){try{E.wake=await navigator.wakeLock.request('screen');}catch(e){}}
+});
+async function concluirEntrega(){
+  if(!E.ord||!confirm('Marcar esta entrega como concluída? O cliente deixa de ver o mapa.'))return;
+  const id=E.ord.track_id;
+  await sb.from('order_tracking').update({status:'encerrado'}).eq('track_id',id);
+  await sb.from('driver_location').delete().eq('track_id',id);
+  fecharEntrega();
+}
+function fecharEntrega(){
+  stopGps();
+  if(E.ch){sb.removeChannel(E.ch);E.ch=null;}
+  if(E.poll){clearInterval(E.poll);E.poll=null;}
+  E.ord=null;
+  $('ent').classList.add('hidden');
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('login').classList.contains('hidden'))doLogin();});

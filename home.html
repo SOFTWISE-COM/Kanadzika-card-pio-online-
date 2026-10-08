@@ -165,6 +165,11 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
   70%{transform:scale(1.15);opacity:1}
   100%{transform:scale(1)}
 }
+.trk-map{flex:1;min-height:200px;width:100%;background:#0a4248}
+.trk-box{padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid #15575e}
+.trk-eta{font-size:22px;font-weight:bold;color:var(--cyan);margin-bottom:4px}
+.trk-sub{font-size:13px;color:var(--muted);line-height:1.4}
+.btn.trk{height:42px;margin-top:10px;font-size:14px}
 </style>
 </head>
 
@@ -438,6 +443,21 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 </div>
 
 
+<div class="sheet" id="sh-track">
+  <div class="sh-head">
+    <button class="sh-back" onclick="closeTrack()" aria-label="Voltar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2>🛵 Acompanhar entrega</h2>
+  </div>
+  <div id="trkMap" class="trk-map"></div>
+  <div class="trk-box">
+    <div class="trk-eta" id="trkEta">A ligar…</div>
+    <div class="trk-sub" id="trkSub"></div>
+    <button class="btn alt trk" id="trkGps" onclick="startMyGps()" style="display:none">📍 Partilhar a minha localização</button>
+  </div>
+</div>
+
 <div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"> <path d="M15 18l-6-6 6-6"/> </svg> </button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa é 50 MT) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
 <div class="sheet" id="sh-profile">
 <style>
@@ -551,6 +571,9 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <div class="toast" id="toast"></div>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="rastreio.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://uuuibhgbwqlbylaijwuh.supabase.co";
@@ -726,6 +749,7 @@ function sendOrder(){
   if(e){openSheet("sh-type");showErr(e);return;}
   const n=(load("kz_counter",0))+1;
   const o={
+    track_id:(state.type==="Delivery"&&window.crypto&&crypto.randomUUID)?crypto.randomUUID():null,
     id:n,ts:Date.now(),type:state.type,name:user.name,phone:user.phone,
     bairro:state.type==="Delivery"?state.bairro:"",ref:state.type==="Delivery"?state.ref.trim():"",
     mesa:state.type==="Mesa"?state.mesa:0,
@@ -734,7 +758,7 @@ function sendOrder(){
   };
   const orders=load("kz_orders",[]);orders.push(o);
   save("kz_orders",orders);save("kz_counter",n);
-  const pend=load("kz_pending",[]);pend.push({name:o.name,phone:o.phone,type:o.type,bairro:o.bairro,ref:o.ref,mesa:o.mesa,items:o.items,fee:o.fee,total:o.total});save("kz_pending",pend);syncPending();
+  const pend=load("kz_pending",[]);pend.push({track_id:o.track_id,name:o.name,phone:o.phone,type:o.type,bairro:o.bairro,ref:o.ref,mesa:o.mesa,items:o.items,fee:o.fee,total:o.total});save("kz_pending",pend);syncPending();
   const url=`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(buildMessage(o))}`;
   cart={};persistCart();
   state.type=null;state.bairro="";state.ref="";state.mesa=0;
@@ -754,7 +778,8 @@ function renderOrders(){
   <div class="muted" style="margin-top:8px">🛒 ITENS</div>
   ${o.items.map(i=>`<div class="row"><span>${i.q}x ${esc(i.n)}</span><span>${mt(i.q*i.p)}</span></div>`).join("")}
   ${o.type==="Delivery"?`<div class="row"><span>🚚 Entrega</span><span>${mt(o.fee)}</span></div>`:""}
-  <div class="row total"><span>💰 TOTAL</span><span>${mt(o.total)}</span></div></div>`).join("");
+  <div class="row total"><span>💰 TOTAL</span><span>${mt(o.total)}</span></div>
+  ${o.track_id?`<button class="btn alt" style="margin:10px 0 0" onclick="openTrack('${o.track_id}')">📍 Acompanhar entrega</button>`:""}</div>`).join("");
 }
 
 /* ---------- perfil ---------- */
@@ -798,6 +823,88 @@ function nav(el,name){
   else if(name==="Perfil")openSheet("sh-profile");
   else{toast(name+" em breve.");}
 }
+
+/* ---------- rastreio em tempo real ---------- */
+let T={id:null,map:null,mk:{},me:null,drv:null,watch:null,ch:null,poll:null,push:0,done:false,fit:false};
+const tEl=id=>document.getElementById(id);
+async function openTrack(id){
+  stopTrack();
+  T={id,map:T.map,mk:T.mk,me:null,drv:null,watch:null,ch:null,poll:null,push:0,done:false,fit:false};
+  Object.values(T.mk).forEach(m=>m.remove());T.mk={};
+  openSheet("sh-track");
+  tEl("trkEta").textContent="A ligar…";tEl("trkSub").textContent="";
+  if(!T.map)T.map=Rastreio.mapa("trkMap");
+  setTimeout(()=>T.map.invalidateSize(),350);
+  try{
+    // cria (ou mantém) a linha de rastreio deste pedido
+    await sb.from("order_tracking").upsert({track_id:id},{onConflict:"track_id",ignoreDuplicates:true});
+    const {data:tr}=await sb.from("order_tracking").select("status").eq("track_id",id).maybeSingle();
+    if(tr&&tr.status==="encerrado"){finishTrack();return;}
+  }catch(e){}
+  startMyGps();
+  const {data:d}=await sb.from("driver_location").select("*").eq("track_id",id).maybeSingle();
+  if(d)setDriver(d);
+  T.ch=sb.channel("trk-"+id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"driver_location",filter:"track_id=eq."+id},p=>{if(p.new&&p.new.lat!=null)setDriver(p.new);})
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"order_tracking",filter:"track_id=eq."+id},p=>{if(p.new&&p.new.status==="encerrado")finishTrack();})
+    .subscribe();
+  // segurança: se o tempo real falhar, consulta de 10 em 10 s
+  T.poll=setInterval(async()=>{
+    const {data}=await sb.from("driver_location").select("*").eq("track_id",id).maybeSingle();
+    if(data)setDriver(data);
+    const {data:t2}=await sb.from("order_tracking").select("status").eq("track_id",id).maybeSingle();
+    if(t2&&t2.status==="encerrado")finishTrack();
+  },10000);
+  tEl("trkEta").textContent="À espera do entregador…";
+  tEl("trkSub").textContent="Assim que sair com o seu pedido, vai vê-lo aqui no mapa.";
+}
+function startMyGps(){
+  if(!navigator.geolocation){tEl("trkSub").textContent="Este telemóvel não permite localização.";return;}
+  if(T.watch!=null)return;
+  tEl("trkGps").style.display="none";
+  T.watch=navigator.geolocation.watchPosition(pos=>{
+    T.me={lat:pos.coords.latitude,lng:pos.coords.longitude};
+    Rastreio.marcar(T.map,T.mk,"me",T.me,"📍");
+    if(Date.now()-T.push>8000){
+      T.push=Date.now();
+      sb.from("order_tracking").update({cust_lat:T.me.lat,cust_lng:T.me.lng,cust_at:new Date().toISOString()}).eq("track_id",T.id).then(()=>{});
+    }
+    refreshTrack();
+  },err=>{
+    T.watch=null;
+    tEl("trkGps").style.display="block";
+    tEl("trkSub").textContent="Ative a localização do telemóvel e toque em «Partilhar a minha localização» para o entregador o encontrar.";
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+}
+function setDriver(d){
+  T.drv={lat:d.lat,lng:d.lng,at:d.updated_at};
+  Rastreio.marcar(T.map,T.mk,"drv",T.drv,"🛵");
+  refreshTrack();
+}
+async function refreshTrack(){
+  if(T.done||!T.drv)return;
+  const stale=(Date.now()-new Date(T.drv.at).getTime())>90000;
+  if(!T.fit){Rastreio.enquadrar(T.map,[T.drv,T.me],true);T.fit=true;}else Rastreio.enquadrar(T.map,[T.drv,T.me],false);
+  if(!T.me){tEl("trkEta").textContent="Entregador a caminho 🛵";tEl("trkSub").textContent="Partilhe a sua localização para ver o tempo estimado.";tEl("trkGps").style.display="block";return;}
+  const e=await Rastreio.eta(T.drv,T.me);
+  if(e.metros<40){tEl("trkEta").textContent="O entregador chegou! 🎉";tEl("trkSub").textContent="Está mesmo aí perto.";return;}
+  tEl("trkEta").textContent="Chega em ≈ "+Rastreio.fmtMin(e.segundos);
+  tEl("trkSub").textContent=Rastreio.fmtDist(e.metros)+" de distância"+(e.aprox?" (estimativa)":"")+" · sinal "+Rastreio.ago(T.drv.at)+(stale?" ⚠️ sem sinal recente":"");
+}
+function finishTrack(){
+  T.done=true;stopTrack(true);
+  tEl("trkEta").textContent="Entrega concluída ✅";
+  tEl("trkSub").textContent="Obrigado pela preferência! Bom apetite 🍔";
+}
+function stopTrack(keepDone){
+  if(T.watch!=null){navigator.geolocation.clearWatch(T.watch);T.watch=null;}
+  if(T.ch){sb.removeChannel(T.ch);T.ch=null;}
+  if(T.poll){clearInterval(T.poll);T.poll=null;}
+  if(!keepDone)T.done=false;
+}
+function closeTrack(){stopTrack();closeSheets();}
+(function(){const o=openSheet;openSheet=function(id){if(id!=="sh-track")stopTrack();return o(id);};})();
+(function(){const c=closeSheets;closeSheets=function(){stopTrack();return c();};})();
 
 syncPending();
 if(user){
