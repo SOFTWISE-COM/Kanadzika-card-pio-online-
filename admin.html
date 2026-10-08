@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#062f35">
+<title>Painel Kanandzika</title>
+<link rel="icon" type="image/png" href="assets/icon-192.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#062f35;--card:#0a4248;--line:#15575e;--cyan:#00e5ff;--text:#fff;--muted:#9bb7ba}
+body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);min-height:100vh}
+.hidden{display:none!important}
+button,input{font:inherit}
+button{cursor:pointer}
+
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{width:100%;max-width:380px;background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:26px 20px;text-align:center}
+.box img{width:84px;height:84px;border-radius:50%;margin-bottom:12px}
+.box h1{font-size:20px;margin-bottom:4px}
+.box p{color:var(--muted);font-size:13px;margin-bottom:18px}
+.inp{width:100%;height:50px;border:1.5px solid var(--cyan);border-radius:14px;background:rgba(0,20,22,.3);color:#fff;padding:0 14px;font-size:15px;outline:0;margin-bottom:12px}
+.inp::placeholder{color:#7e9da0}
+.btn{width:100%;height:50px;border:0;border-radius:14px;background:var(--cyan);color:#00282d;font-size:16px;font-weight:bold}
+.btn:disabled{opacity:.6}
+.err{color:#ff8a98;font-size:13px;margin-top:12px;min-height:18px}
+
+#panel{max-width:900px;margin:auto;padding:16px 14px 40px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.top h1{font-size:20px;color:var(--cyan)}
+.top small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.acts{display:flex;gap:8px}
+.mini{height:38px;padding:0 14px;border-radius:12px;border:1px solid #1d5960;background:var(--card);color:#fff;font-size:13px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.tab{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:14px;font-weight:bold}
+.tab.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.12)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:620px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat span{display:block;color:var(--muted);font-size:12px}
+.stat b{display:block;font-size:26px;margin-top:6px;color:var(--cyan)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+.card h2{font-size:14px;margin-bottom:12px}
+.chart{display:flex;align-items:flex-end;gap:5px;height:130px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.bar i{display:block;width:100%;background:var(--cyan);border-radius:5px 5px 0 0;min-height:2px;opacity:.9}
+.bar i.zero{background:#1d5960;opacity:1}
+.bar em{font-style:normal;font-size:10px;color:var(--cyan);margin-bottom:3px;height:13px}
+.bar u{text-decoration:none;font-size:9px;color:var(--muted);margin-top:5px}
+.tools{display:flex;gap:8px;margin-bottom:12px}
+.tools input{flex:1;height:44px;border:1px solid var(--line);border-radius:12px;background:rgba(0,20,22,.3);color:#fff;padding:0 12px;outline:0;font-size:14px;min-width:0}
+.tools button{height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--cyan);background:none;color:var(--cyan);font-size:13px;white-space:nowrap}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.av{width:38px;height:38px;border-radius:50%;background:#0d5760;color:var(--cyan);display:grid;place-items:center;font-weight:bold;flex:none}
+.inf{flex:1;min-width:0}
+.inf strong{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inf a{color:var(--muted);font-size:12px;text-decoration:none}
+.dt{color:var(--muted);font-size:11px;text-align:right;flex:none}
+.ord{padding:12px 0;border-top:1px solid var(--line)}
+.ord:first-of-type{border-top:0}
+.oh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.oh b{color:var(--cyan);font-size:14px}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(0,229,255,.13);border:1px solid rgba(0,229,255,.4);color:var(--cyan)}
+.oh .dt{margin-left:auto}
+.on{font-size:13px;margin-bottom:6px}
+.on a{color:var(--muted);text-decoration:none}
+.oi{font-size:12px;color:#d7ebed;line-height:1.5;margin-bottom:6px}
+.ot{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+.ot b{color:var(--cyan);font-size:14px}
+.empty{color:var(--muted);text-align:center;font-size:13px;padding:22px 8px;line-height:1.5}
+#status{color:var(--muted);font-size:12px;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="box">
+    <img src="assets/logo.png" alt="Kanandzika">
+    <h1>Painel Kanandzika</h1>
+    <p>Acesso reservado ao administrador</p>
+    <input class="inp" id="phone" type="tel" placeholder="Número de telemóvel" autocomplete="username">
+    <input class="inp" id="pass" type="password" placeholder="Senha" autocomplete="current-password">
+    <button class="btn" id="btnLogin" onclick="doLogin()">Entrar</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+</section>
+
+<section id="panel" class="hidden">
+  <div class="top">
+    <div><h1>Painel</h1><small id="updated">Painel Kanandzika</small></div>
+    <div class="acts">
+      <button class="mini" onclick="load()">Atualizar</button>
+      <button class="mini" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="tabU" onclick="setTab('u')">Cadastros</button>
+    <button class="tab" id="tabO" onclick="setTab('o')">Pedidos</button>
+  </div>
+
+  <div id="status"></div>
+
+  <div id="viewU">
+    <div class="stats">
+      <div class="stat"><span>Total de cadastros</span><b id="uTotal">0</b></div>
+      <div class="stat"><span>Hoje</span><b id="uHoje">0</b></div>
+      <div class="stat"><span>Últimos 7 dias</span><b id="u7">0</b></div>
+      <div class="stat"><span>Últimos 30 dias</span><b id="u30">0</b></div>
+    </div>
+    <div class="card">
+      <h2>Cadastros por dia (últimos 14 dias)</h2>
+      <div class="chart" id="chartU"></div>
+    </div>
+    <div class="card">
+      <h2>Utilizadores cadastrados</h2>
+      <div class="tools">
+        <input id="qU" placeholder="Procurar por nome ou número" oninput="renderUsers()">
+        <button onclick="exportCsv('u')">Exportar CSV</button>
+      </div>
+      <div id="listU"></div>
+    </div>
+  </div>
+
+  <div id="viewO" class="hidden">
+    <div class="stats">
+      <div class="stat"><span>Total de pedidos</span><b id="oTotal">0</b></div>
+      <div class="stat"><span>Pedidos hoje</span><b id="oHoje">0</b></div>
+      <div class="stat"><span>Faturação total</span><b id="oFat">0</b></div>
+      <div class="stat"><span>Faturação hoje</span><b id="oFatHoje">0</b></div>
+    </div>
+    <div class="card">
+      <h2>Pedidos por dia (últimos 14 dias)</h2>
+      <div class="chart" id="chartO"></div>
+    </div>
+    <div class="card">
+      <h2>Histórico de pedidos</h2>
+      <div class="tools">
+        <input id="qO" placeholder="Procurar por nome, número ou bairro" oninput="renderOrders()">
+        <button onclick="exportCsv('o')">Exportar CSV</button>
+      </div>
+      <div id="listO"></div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://uuuibhgbwqlbylaijwuh.supabase.co';
+const SUPABASE_KEY='sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let users=[],usersTotal=0,orders=[],ordersTotal=0,tab='u';
+
+function normPhone(v){let d=String(v).replace(/\D/g,'');if(d.startsWith('258')&&d.length>9)d=d.slice(3);return d;}
+function fmtPhone(p){const d=String(p||'').replace(/\D/g,'');return d.length===9?'+258 '+d.slice(0,2)+' '+d.slice(2,5)+' '+d.slice(5):(p||'');}
+function fmtDate(s){const d=new Date(s);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());}
+function dayKey(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+const mt=n=>(Number(n)||0).toLocaleString('pt-PT')+' MT';
+
+function showLogin(msg){
+  $('panel').classList.add('hidden');$('login').classList.remove('hidden');
+  $('loginErr').textContent=msg||'';
+}
+function showPanel(){$('login').classList.add('hidden');$('panel').classList.remove('hidden');load();}
+
+function isAdmin(session){
+  const m=(session&&session.user&&session.user.app_metadata)||{};
+  return m.role==='admin';
+}
+
+async function enter(session){
+  if(!isAdmin(session)){
+    await sb.auth.signOut();
+    showLogin('Esta conta não tem acesso de administrador.');
+    return;
+  }
+  showPanel();
+}
+
+async function init(){
+  try{
+    const {data}=await sb.auth.getSession();
+    if(data&&data.session)await enter(data.session);else showLogin();
+  }catch(e){showLogin();}
+}
+
+async function doLogin(){
+  const phone=normPhone($('phone').value),pass=$('pass').value;
+  $('loginErr').textContent='';
+  if(!/^\d{9}$/.test(phone)||!pass){$('loginErr').textContent='Escreva o número (9 dígitos) e a senha.';return;}
+  $('btnLogin').disabled=true;
+  const {data,error}=await sb.auth.signInWithPassword({email:phone+'@kanandzika.app',password:pass});
+  $('btnLogin').disabled=false;
+  if(error){$('loginErr').textContent='Número ou senha incorretos.';return;}
+  $('pass').value='';
+  await enter(data.session);
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  users=[];orders=[];
+  showLogin();
+}
+
+function setTab(t){
+  tab=t;
+  $('tabU').classList.toggle('on',t==='u');
+  $('tabO').classList.toggle('on',t==='o');
+  $('viewU').classList.toggle('hidden',t!=='u');
+  $('viewO').classList.toggle('hidden',t!=='o');
+}
+
+async function load(silent){
+  if(!silent)$('status').textContent='A carregar...';
+  const [u,o]=await Promise.all([
+    sb.from('profiles').select('name,phone,created_at',{count:'exact'}).not('phone','is',null).order('created_at',{ascending:false}).range(0,999),
+    sb.from('orders').select('*',{count:'exact'}).order('created_at',{ascending:false}).range(0,999)
+  ]);
+  const errs=[];
+  if(u.error)errs.push('cadastros: '+u.error.message);else{users=u.data||[];usersTotal=(u.count!=null)?u.count:users.length;}
+  if(o.error)errs.push('pedidos: '+o.error.message);else{orders=o.data||[];ordersTotal=(o.count!=null)?o.count:orders.length;}
+  $('status').textContent=errs.length?'Erro ao carregar '+errs.join(' | '):'';
+  const n=new Date();
+  $('updated').textContent='Atualizado às '+pad(n.getHours())+':'+pad(n.getMinutes())+' (atualiza sozinho a cada 30 s)';
+  renderUserStats();renderOrderStats();
+  drawChart('chartU',users);drawChart('chartO',orders);
+  renderUsers();renderOrders();
+}
+
+function renderUserStats(){
+  const now=new Date(),today=dayKey(now);
+  const f7=new Date(now);f7.setDate(f7.getDate()-6);f7.setHours(0,0,0,0);
+  const f30=new Date(now);f30.setDate(f30.getDate()-29);f30.setHours(0,0,0,0);
+  let h=0,a=0,b=0;
+  users.forEach(r=>{const d=new Date(r.created_at);if(dayKey(d)===today)h++;if(d>=f7)a++;if(d>=f30)b++;});
+  $('uTotal').textContent=usersTotal;$('uHoje').textContent=h;$('u7').textContent=a;$('u30').textContent=b;
+}
+
+function renderOrderStats(){
+  const today=dayKey(new Date());
+  let h=0,fat=0,fh=0;
+  orders.forEach(r=>{const t=Number(r.total)||0;fat+=t;if(dayKey(new Date(r.created_at))===today){h++;fh+=t;}});
+  $('oTotal').textContent=ordersTotal;$('oHoje').textContent=h;
+  $('oFat').textContent=mt(fat);$('oFatHoje').textContent=mt(fh);
+}
+
+function drawChart(id,list){
+  const days=[],counts={};
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=dayKey(d);days.push({k,label:pad(d.getDate())});counts[k]=0;}
+  list.forEach(r=>{const k=dayKey(new Date(r.created_at));if(k in counts)counts[k]++;});
+  const max=Math.max(1,...days.map(d=>counts[d.k]));
+  $(id).innerHTML=days.map(d=>{
+    const c=counts[d.k],h=c?Math.max(6,Math.round(c/max*80)):2;
+    return '<div class="bar"><em>'+(c||'')+'</em><i class="'+(c?'':'zero')+'" style="height:'+h+'%"></i><u>'+d.label+'</u></div>';
+  }).join('');
+}
+
+function renderUsers(){
+  const q=$('qU').value.trim().toLowerCase();
+  const L=users.filter(r=>!q||String(r.name||'').toLowerCase().includes(q)||String(r.phone||'').includes(q));
+  if(!L.length){$('listU').innerHTML='<div class="empty">'+(users.length?'Nenhum resultado.':'Ainda não há cadastros.')+'</div>';return;}
+  $('listU').innerHTML=L.map(r=>{
+    const nm=r.name||'Sem nome',ini=esc(nm.trim().charAt(0).toUpperCase()||'?'),ph=String(r.phone||'').replace(/\D/g,'');
+    return '<div class="row"><div class="av">'+ini+'</div><div class="inf"><strong>'+esc(nm)+'</strong><a href="https://wa.me/258'+esc(ph)+'" target="_blank" rel="noopener">'+esc(fmtPhone(r.phone))+'</a></div><div class="dt">'+esc(fmtDate(r.created_at))+'</div></div>';
+  }).join('');
+}
+
+function renderOrders(){
+  const q=$('qO').value.trim().toLowerCase();
+  const L=orders.filter(r=>!q||String(r.name||'').toLowerCase().includes(q)||String(r.phone||'').includes(q)||String(r.bairro||'').toLowerCase().includes(q));
+  if(!L.length){$('listO').innerHTML='<div class="empty">'+(orders.length?'Nenhum resultado.':'Ainda não há pedidos.')+'</div>';return;}
+  $('listO').innerHTML=L.map(r=>{
+    const items=Array.isArray(r.items)?r.items:[];
+    const ph=String(r.phone||'').replace(/\D/g,'');
+    const where=r.type==='Delivery'?('Bairro: '+esc(r.bairro||'-')+(r.ref?' ('+esc(r.ref)+')':'')):('Mesa '+esc(r.mesa));
+    return '<div class="ord"><div class="oh"><b>#'+String(r.id).padStart(3,'0')+'</b><span class="tag">'+esc(r.type)+'</span><span class="dt">'+esc(fmtDate(r.created_at))+'</span></div>'+
+      '<div class="on">'+esc(r.name)+' · <a href="https://wa.me/258'+esc(ph)+'" target="_blank" rel="noopener">'+esc(fmtPhone(r.phone))+'</a></div>'+
+      '<div class="oi">'+items.map(i=>esc(i.q)+'x '+esc(i.n)).join('<br>')+'</div>'+
+      '<div class="ot"><span>'+where+(r.type==='Delivery'?' · Entrega '+mt(r.fee):'')+'</span><b>'+mt(r.total)+'</b></div></div>';
+  }).join('');
+}
+
+function exportCsv(which){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  let csv,name;
+  if(which==='u'){
+    if(!users.length)return;
+    csv='﻿Nome,Telefone,Data de cadastro\n'+users.map(r=>[q(r.name),q(r.phone),q(fmtDate(r.created_at))].join(',')).join('\n');
+    name='cadastros-kanandzika.csv';
+  }else{
+    if(!orders.length)return;
+    csv='﻿Pedido,Data,Tipo,Cliente,Telefone,Bairro,Mesa,Itens,Entrega,Total\n'+orders.map(r=>[q(r.id),q(fmtDate(r.created_at)),q(r.type),q(r.name),q(r.phone),q(r.bairro),q(r.mesa),q((Array.isArray(r.items)?r.items:[]).map(i=>i.q+'x '+i.n).join(' + ')),q(r.fee),q(r.total)].join(',')).join('\n');
+    name='pedidos-kanandzika.csv';
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('login').classList.contains('hidden'))doLogin();});
+setInterval(()=>{if(!$('panel').classList.contains('hidden')&&!document.hidden)load(true);},30000);
+init();
+</script>
+</body>
+</html>

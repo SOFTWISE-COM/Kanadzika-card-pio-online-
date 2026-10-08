@@ -551,7 +551,11 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <div class="toast" id="toast"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://uuuibhgbwqlbylaijwuh.supabase.co";
+const SUPABASE_KEY="sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const WHATSAPP="258852353210"; /* destino dos pedidos (contacto comercial) */
 const FEE=50;
 const BAIRROS=["Matola Rio","Thandavanto","Campoane (Xidiminguana)","Belo Horizonte","Bloco 2","Mazambanine","Tedeco","Escola Secundária de Boane","Escola Secundária Joaquim Chissano","Boane (Vila)"];
@@ -690,6 +694,23 @@ function goSummary(){
   openSheet("sh-sum");
 }
 
+
+/* ---------- pedidos na base de dados ---------- */
+async function syncPending(){
+  const q=load("kz_pending",[]);
+  if(!q.length)return;
+  try{
+    const {data}=await sb.auth.getSession();
+    if(!data||!data.session)return;
+    const rest=[];
+    for(const p of q){
+      const {error}=await sb.from("orders").insert(p);
+      if(error)rest.push(p);
+    }
+    save("kz_pending",rest);
+  }catch(e){}
+}
+
 /* ---------- envio ---------- */
 function buildMessage(o){
   let m=`🍔 PEDIDO - KANANDZIKA 🍔\n\n📅 Data: ${fmtDate(o.ts,true)}\n${o.type==="Delivery"?"🛵 Tipo: Delivery":"🍽️ Tipo: Mesa"}\n\n👤 Cliente: ${o.name}\n📞 Tel: ${fmtPhone(o.phone)}\n`;
@@ -713,6 +734,7 @@ function sendOrder(){
   };
   const orders=load("kz_orders",[]);orders.push(o);
   save("kz_orders",orders);save("kz_counter",n);
+  const pend=load("kz_pending",[]);pend.push({name:o.name,phone:o.phone,type:o.type,bairro:o.bairro,ref:o.ref,mesa:o.mesa,items:o.items,fee:o.fee,total:o.total});save("kz_pending",pend);syncPending();
   const url=`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(buildMessage(o))}`;
   cart={};persistCart();
   state.type=null;state.bairro="";state.ref="";state.mesa=0;
@@ -739,7 +761,7 @@ function renderOrders(){
 function renderProfile(){
   $("profileBody").innerHTML=`<div class="card"><div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="logout()">Sair da conta</button>`;
 }
-function logout(){localStorage.removeItem("kz_session");localStorage.removeItem("kz_user");location.replace("index.html");}
+function logout(){const go=()=>{localStorage.removeItem("kz_session");localStorage.removeItem("kz_user");location.replace("index.html");};try{sb.auth.signOut().then(go,go);}catch(e){go();}}
 
 /* ---------- original: slides, busca, navegação ---------- */
 const slides=$("slides"),dots=document.querySelectorAll(".dot"),search=$("search"),products=document.querySelectorAll(".product");
@@ -777,6 +799,7 @@ function nav(el,name){
   else{toast(name+" em breve.");}
 }
 
+syncPending();
 if(user){
   $("hello").textContent="Olá, "+user.name.trim().split(/\s+/)[0];
   persistCart();
