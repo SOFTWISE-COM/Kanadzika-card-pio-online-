@@ -176,6 +176,9 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .nti .h{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
 .nti strong{display:block;margin:4px 0 2px;font-size:14px}
 .nti p{font-size:13px;color:#cfe3e5;white-space:pre-wrap;word-break:break-word;max-height:90px;overflow:hidden}
+.bub{cursor:pointer}
+.rx{display:flex;gap:4px;margin-top:-4px}.rx span{background:#0a4248;border:1px solid var(--line);border-radius:12px;padding:1px 7px;font-size:14px}
+.rxp{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:4px 6px}.rxp button{background:none;border:0;font-size:20px;padding:2px 5px;border-radius:12px}.rxp button.on{background:rgba(0,229,255,.2)}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -245,7 +248,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
       <div class="kpi"><span>Últimos 7 dias</span><b id="kU7">0</b><small id="kU7d"></small></div>
       <div class="kpi"><span>Últimos 30 dias</span><b id="kU30">0</b><small id="kU30d"></small></div>
     </div>
-    <div class="sec">Faturação</div>
+    <div class="sec">Faturação confirmada (entrega concluída + pagamento confirmado)</div>
     <div class="kpis">
       <div class="kpi"><span>Hoje</span><b class="cy" id="kR1">0</b></div>
       <div class="kpi"><span>Últimos 7 dias</span><b id="kR7">0</b><small id="kR7d"></small></div>
@@ -315,7 +318,8 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
   <!-- CHAT -->
   <div id="v-chat" class="hidden">
     <div class="card" id="chList">
-      <div class="tools"><input id="qC" placeholder="Procurar conversa por nome ou número" oninput="renderChats()"></div>
+      <div class="tools"><input id="qC" placeholder="Procurar conversa por nome ou número" oninput="renderChats()"><button onclick="novaConversa()"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nova</button></div>
+      <div id="chNew" class="hidden" style="margin-bottom:10px"><input class="inp" id="qN" placeholder="Escolher cliente: nome ou número" oninput="pesqNova()" autocomplete="off" style="height:44px;margin-bottom:8px"><div id="resN" class="ntres"></div></div>
       <div class="sum" id="sumC"></div>
       <div id="convs"></div>
     </div>
@@ -342,6 +346,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
         <input id="ntQ" placeholder="Procurar cliente por nome ou número" oninput="ntPesq()" autocomplete="off">
       </div>
       <div id="ntRes" class="ntres"></div>
+      <label id="ntChatL" style="display:flex;gap:8px;align-items:center;font-size:13px;margin:6px 0;color:var(--muted)"><input type="checkbox" id="ntChat" checked>Também abrir no chat do cliente (ele pode responder)</label>
       <div class="sum hidden" id="ntSel"></div>
       <input class="inp" id="ntTit" maxlength="150" placeholder="Título" style="height:46px;margin-top:8px">
       <textarea class="inp" id="ntMsg" maxlength="3000" rows="10" placeholder="Mensagem" style="height:auto;padding:12px 14px;line-height:1.45;resize:vertical"></textarea>
@@ -394,7 +399,7 @@ const pad=n=>String(n).padStart(2,'0');
 const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mt=n=>(Math.round(Number(n)||0)).toLocaleString('pt-PT')+' MT';
 const num=n=>(Number(n)||0).toLocaleString('pt-PT');
-let users=[],orders=[],fbs=[],chats=[],tab='home',gran={u:'d',r:'d',o:'d'},openC=null;
+let users=[],orders=[],fbs=[],chats=[],reacs=[],extraC=new Map(),pickM=null,tab='home',gran={u:'d',r:'d',o:'d'},openC=null;
 let known=null;            // ids já vistos (para avisar de novidades)
 let seen={u:0,o:0,f:0,c:0};    // novidades por ver em cada separador
 
@@ -446,7 +451,7 @@ async function doLogin(){
   $('pass').value='';
   await enter(data.session);
 }
-async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];chats=[];known=null;openC=null;showLogin();}
+async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];chats=[];reacs=[];known=null;openC=null;showLogin();}
 
 /* ---------- separadores ---------- */
 function setTab(t){
@@ -486,12 +491,14 @@ async function load(silent){
   loading=true;
   if(!silent)$('status').textContent='A carregar...';
   const errs=[];
-  const [u,o,f,c]=await Promise.all([
+  const [u,o,f,c,rc]=await Promise.all([
     fetchAll('profiles','created_at','name,phone,created_at').catch(e=>{errs.push(e.message);return null;}),
     fetchAll('orders','created_at').catch(e=>{errs.push(e.message);return null;}),
     fetchAll('feedback','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'feedback: falta correr o painel.sql no Supabase':e.message);return null;}),
-    fetchAll('chat_messages','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'chat: falta correr o chat.sql no Supabase':e.message);return null;})
+    fetchAll('chat_messages','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'chat: falta correr o chat.sql no Supabase':e.message);return null;}),
+    fetchAll('chat_reacoes','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'reações: falta correr o chat2.sql no Supabase':e.message);return null;})
   ]);
+  if(rc)reacs=rc;
   const nu=u?u.filter(r=>r.phone):users, no=o||orders, nf=f||fbs, nc=c||chats;
   // novidades desde a última leitura
   if(known){
@@ -516,6 +523,9 @@ async function load(silent){
 function renderAll(){renderKpis();drawCharts();renderLists();renderUsers();renderOrders();renderFeedback();renderChats();if(openC)renderThread(false);}
 
 /* ---------- números ---------- */
+/* dinheiro só conta: Delivery entregue + pagamento confirmado (Mesa: só pagamento) */
+const recebido=r=>r.pago===true&&(r.type!=='Delivery'||r.entregue===true);
+const totR=r=>recebido(r)?(Number(r.total)||0):0;
 const sumBetween=(list,fn,a,b)=>list.reduce((s,r)=>{const d=new Date(r.created_at);return d>=a&&d<b?s+fn(r):s;},0);
 function delta(cur,prev){
   if(!prev)return cur?'novo período':'';
@@ -524,17 +534,17 @@ function delta(cur,prev){
 }
 function renderKpis(){
   const hoje=daysAgo(0),amanha=daysAgo(-1),d7=daysAgo(6),d14=daysAgo(13),d30=daysAgo(29),d60=daysAgo(59);
-  const one=()=>1,tot=r=>Number(r.total)||0;
+  const one=()=>1,tot=totR;
   const u1=sumBetween(users,one,hoje,amanha),u7=sumBetween(users,one,d7,amanha),u7p=sumBetween(users,one,d14,d7),u30=sumBetween(users,one,d30,amanha),u30p=sumBetween(users,one,d60,d30);
   const r1=sumBetween(orders,tot,hoje,amanha),r7=sumBetween(orders,tot,d7,amanha),r7p=sumBetween(orders,tot,d14,d7),r30=sumBetween(orders,tot,d30,amanha),r30p=sumBetween(orders,tot,d60,d30);
-  const rT=orders.reduce((s,r)=>s+tot(r),0);
+  const rT=orders.reduce((s,r)=>s+tot(r),0),pagos=orders.filter(recebido),aberto=orders.filter(r=>!recebido(r)).reduce((s,r)=>s+(Number(r.total)||0),0);
   const com=(a,b)=>b?delta(a,b).replace('vs 7/30 dias anteriores','vs período anterior'):'';
   $('kU').textContent=num(users.length);$('kUs').textContent=users.length?'desde '+fmtDate(users[users.length-1].created_at).slice(0,10):'';
   $('kU1').textContent=num(u1);$('kU7').textContent=num(u7);$('kU7d').innerHTML=com(u7,u7p);$('kU30').textContent=num(u30);$('kU30d').innerHTML=com(u30,u30p);
   $('kR1').textContent=mt(r1);$('kR7').textContent=mt(r7);$('kR7d').innerHTML=com(r7,r7p);$('kR30').textContent=mt(r30);$('kR30d').innerHTML=com(r30,r30p);
-  $('kR').textContent=mt(rT);$('kRt').textContent=num(orders.length)+' pedidos';
+  $('kR').textContent=mt(rT);$('kRt').textContent=num(pagos.length)+' pagos · '+mt(aberto)+' por confirmar';
   $('kO').textContent=num(orders.length);$('kO1').textContent=num(sumBetween(orders,one,hoje,amanha));
-  $('kTk').textContent=mt(orders.length?rT/orders.length:0);
+  $('kTk').textContent=mt(pagos.length?rT/pagos.length:0);
   const avg=fbs.length?fbs.reduce((s,r)=>s+r.rating,0)/fbs.length:0;
   $('kFb').textContent=fbs.length?avg.toFixed(1).replace('.',',')+' / 5':'–';$('kFbs').textContent=fbs.length?num(fbs.length)+' opiniões':'sem opiniões';
 }
@@ -559,7 +569,7 @@ function barChart(el,B,fmt,unit,every){
 }
 function drawCharts(){
   const lab={d:'Últimos 30 dias',w:'Últimas 12 semanas',m:'Últimos 12 meses'};
-  const U=series(users,()=>1,gran.u),R=series(orders,r=>Number(r.total)||0,gran.r),O=series(orders,()=>1,gran.o);
+  const U=series(users,()=>1,gran.u),R=series(orders,totR,gran.r),O=series(orders,()=>1,gran.o);
   $('sU').textContent=lab[gran.u]+' · '+num(U.reduce((s,b)=>s+b.v,0))+' cadastros';
   $('sR').textContent=lab[gran.r]+' · '+mt(R.reduce((s,b)=>s+b.v,0));
   $('sO').textContent=lab[gran.o]+' · '+num(O.reduce((s,b)=>s+b.v,0))+' pedidos';
@@ -617,8 +627,8 @@ function filteredOrders(){
   return orders.filter(r=>(!from||new Date(r.created_at)>=from)&&(!t||r.type===t)&&(!q||String(r.name||'').toLowerCase().includes(q)||String(r.phone||'').includes(q)||String(r.bairro||'').toLowerCase().includes(q)||String(r.id)===q.replace('#','')));
 }
 function renderOrders(){
-  const L=filteredOrders(),tot=L.reduce((s,r)=>s+(Number(r.total)||0),0);
-  $('sumO').innerHTML='<b>'+num(L.length)+'</b> pedidos · faturação <b>'+mt(tot)+'</b>'+(L.length?' · ticket médio <b>'+mt(tot/L.length)+'</b>':'');
+  const L=filteredOrders(),Lp=L.filter(recebido),tot=Lp.reduce((s,r)=>s+(Number(r.total)||0),0),ab=L.filter(r=>!recebido(r)).reduce((s,r)=>s+(Number(r.total)||0),0);
+  $('sumO').innerHTML='<b>'+num(L.length)+'</b> pedidos · faturação confirmada <b>'+mt(tot)+'</b>'+(Lp.length?' · ticket médio <b>'+mt(tot/Lp.length)+'</b>':'')+(ab?' · por confirmar <b style="color:var(--warn)">'+mt(ab)+'</b>':'');
   if(!L.length){$('listO').innerHTML='<div class="empty">'+(orders.length?'Nenhum resultado.':'Ainda não há pedidos.')+'</div>';return;}
   $('listO').innerHTML=L.slice(0,200).map(r=>{
     const items=Array.isArray(r.items)?r.items:[],ph=normPhone(r.phone);
@@ -627,9 +637,35 @@ function renderOrders(){
       '<div class="on">'+esc(r.name)+' · <a href="https://wa.me/258'+esc(ph)+'" target="_blank" rel="noopener">'+esc(fmtPhone(r.phone))+'</a></div>'+
       '<div class="oi">'+items.map(i=>esc(i.q)+'x '+esc(i.n)).join('<br>')+'</div>'+
       '<div class="ot"><span>'+where+(r.type==='Delivery'?' · Entrega '+mt(r.fee):'')+'</span><b>'+mt(r.total)+'</b></div>'+
-      '<div class="oa">'+(r.track_id?'<button class="trkbtn" onclick="abrirEntrega('+Number(r.id)+')">'+ICO('moto')+'Entrega em tempo real</button>':'')+'<button class="ib bad" style="margin-left:auto" onclick="apagarPedido('+Number(r.id)+')" title="Apagar pedido"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>';
+      '<div class="oa" style="flex-wrap:wrap;gap:6px">'+estadoPag(r)+(r.track_id?'<button class="trkbtn" onclick="abrirEntrega('+Number(r.id)+')">'+ICO('moto')+'Entrega em tempo real</button>':'')+'<button class="ib bad" style="margin-left:auto" onclick="apagarPedido('+Number(r.id)+')" title="Apagar pedido"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>';
   }).join('')+(L.length>200?'<div class="empty">A mostrar 200 de '+num(L.length)+'. Use os filtros ou exporte o CSV.</div>':'');
 }
+function estadoPag(r){
+  const del=r.type==='Delivery',ent=r.entregue===true,pg=r.pago===true;
+  let h='';
+  if(del)h+='<span class="chip '+(ent?'ok':'warn')+'">'+(ent?'Entregue':'Por entregar')+'</span>';
+  h+='<span class="chip '+(pg?'ok':'warn')+'">'+(pg?'Pago · conta na faturação':'Pagamento por confirmar')+'</span>';
+  if(del&&!ent)h+='<button class="trkbtn" onclick="marcarEntregue('+Number(r.id)+')">Entrega concluída</button>';
+  if(!pg){
+    const bloq=del&&!ent;
+    h+='<button class="trkbtn" '+(bloq?'disabled style="opacity:.45" title="Só depois da entrega concluída"':'')+' onclick="confirmarPagamento('+Number(r.id)+')">Confirmar pagamento</button>';
+  }else h+='<button class="trkbtn" onclick="desfazerPagamento('+Number(r.id)+')">Desfazer</button>';
+  return h;
+}
+async function atualizarPedido(id,campos,msg){
+  const {data,error}=await sb.from('orders').update(campos).eq('id',id).select('id');
+  if(error||!data||!data.length)return toast('Não foi possível gravar. Corra o faturacao.sql no Supabase.');
+  const o=orders.find(x=>x.id===id);if(o)Object.assign(o,campos);
+  toast(msg);renderAll();
+}
+function marcarEntregue(id){if(!confirm('Marcar a entrega do pedido #'+id+' como concluída?'))return;atualizarPedido(id,{entregue:true,entregue_em:new Date().toISOString()},'Entrega registada.');}
+function confirmarPagamento(id){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  if(o.type==='Delivery'&&!o.entregue)return toast('O pagamento só pode ser confirmado depois da entrega concluída.');
+  if(!confirm('Confirmar que recebeu '+mt(o.total)+' do pedido #'+id+'? Passa a contar na faturação.'))return;
+  atualizarPedido(id,{pago:true,pago_em:new Date().toISOString()},'Pagamento confirmado: '+mt(o.total));
+}
+function desfazerPagamento(id){if(!confirm('Desfazer a confirmação de pagamento do pedido #'+id+'? Sai da faturação.'))return;atualizarPedido(id,{pago:false,pago_em:null},'Pagamento desfeito.');}
 async function apagarPedido(id){
   if(!confirm('Apagar o pedido #'+id+'? Não pode ser desfeito.'))return;
   const {data,error}=await sb.from('orders').delete().eq('id',id).select('id');
@@ -666,7 +702,7 @@ function ntInit(){
 function ntModelo(){const x=MODELOS[+$('ntModelo').value];$('ntTit').value=x.t;$('ntMsg').value=x.m;ntPrev();}
 function ntPara(){
   const one=$('ntPara').value==='one';
-  $('ntQ').classList.toggle('hidden',!one);$('ntRes').classList.toggle('hidden',!one);
+  $('ntQ').classList.toggle('hidden',!one);$('ntChatL').classList.toggle('hidden',!one);$('ntRes').classList.toggle('hidden',!one);
   if(!one){nt.sel=null;$('ntSel').classList.add('hidden');}else ntSelShow();
   ntPrev();
 }
@@ -695,7 +731,12 @@ async function enviarNotif(){
   const {error}=await sb.from('notificacoes').insert(row);
   b.disabled=false;
   if(error)return toast(/relation|does not exist|schema cache/i.test(error.message)?'Falta correr o notificacoes.sql no Supabase.':'Erro: '+error.message);
-  toast('Notificação enviada'+(todos?' a todos.':' a '+(nt.sel.name||'cliente')+'.'));
+  let chatOk=true;
+  if(!todos&&$('ntChat').checked){
+    const uid=await uidDe(normPhone(nt.sel.phone));
+    if(uid){const {error:e2}=await sb.from('chat_messages').insert({user_id:uid,sender:'suporte',name:'Suporte Kanandzika',phone:normPhone(nt.sel.phone),message:(row.titulo+'\n\n'+row.mensagem).slice(0,1000),lida_admin:true});chatOk=!e2;}else chatOk=false;
+  }
+  toast('Notificação enviada'+(todos?' a todos.':' a '+(nt.sel.name||'cliente')+'.')+(chatOk?'':' (o chat não foi aberto: corra o chat2.sql)'));
   loadNotifs();
 }
 async function loadNotifs(){
@@ -751,12 +792,13 @@ function conversas(){
     if(r.sender==='cliente'){if(r.name)c.name=r.name;if(r.phone)c.phone=r.phone;if(!r.lida_admin)c.unread++;}
     if(!c.last||new Date(r.created_at)>new Date(c.last.created_at))c.last=r;
   });
+  extraC.forEach((x,id)=>{if(!m.has(id))m.set(id,{id,name:x.name||'Cliente',phone:x.phone||'',last:null,unread:0,msgs:[]});});
   m.forEach(c=>{c.msgs.sort((a,b)=>a.id-b.id);if(!c.name)c.name='Cliente';});
-  return [...m.values()].sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+  return [...m.values()].sort((a,b)=>(b.last?new Date(b.last.created_at):Infinity)-(a.last?new Date(a.last.created_at):Infinity));
 }
 function renderChats(){
   const q=($('qC').value||'').trim().toLowerCase();
-  const L=conversas().filter(c=>!q||c.name.toLowerCase().includes(q)||String(c.phone).includes(q));
+  const L=conversas().filter(c=>c.last&&(!q||c.name.toLowerCase().includes(q)||String(c.phone).includes(q)));
   const nao=conversas().reduce((s,c)=>s+(c.unread?1:0),0);
   $('sumC').innerHTML='<b>'+num(L.length)+'</b> conversas'+(nao?' · <span style="color:var(--bad)">'+nao+' por responder</span>':'');
   $('convs').innerHTML=L.length?L.map(c=>{
@@ -786,8 +828,52 @@ function renderThread(descer){
   $('thName').textContent=c.name;$('thPhone').textContent=fmtPhone(c.phone);
   $('thWa').href='https://wa.me/258'+ph;$('thTel').href='tel:+258'+ph;
   const el=$('thBody'),perto=el.scrollHeight-el.scrollTop-el.clientHeight<120;
-  el.innerHTML=c.msgs.map(m=>'<div class="bub '+(m.sender==='cliente'?'c':m.sender==='auto'?'a':'s')+'">'+esc(m.message)+'<small>'+(m.sender==='auto'?'resposta automática · ':'')+esc(fmtDate(m.created_at).slice(11))+'</small></div>').join('');
+  el.innerHTML=c.msgs.map(m=>{
+    const cl=m.sender==='cliente',rs=reacs.filter(r=>r.message_id===m.id),mine=(rs.find(r=>r.autor==='suporte')||{}).emoji;
+    const al=cl?'flex-start':'flex-end';
+    return '<div class="bub '+(cl?'c':m.sender==='auto'?'a':'s')+'" onclick="pickReacao('+m.id+')">'+esc(m.message)+'<small>'+(m.sender==='auto'?'resposta automática · ':'')+esc(fmtDate(m.created_at).slice(11))+'</small></div>'+
+      (rs.length?'<div class="rx" style="align-self:'+al+'">'+rs.map(r=>'<span title="'+(r.autor==='cliente'?'Cliente':'Você')+'">'+esc(r.emoji)+'</span>').join('')+'</div>':'')+
+      (pickM===m.id?'<div class="rxp" style="align-self:'+al+'">'+EMOJIS.map(e=>'<button class="'+(e===mine?'on':'')+'" onclick="reagir('+m.id+',\''+e+'\')">'+e+'</button>').join('')+'</div>':'');
+  }).join('');
   if(descer||perto)el.scrollTop=el.scrollHeight;
+}
+const EMOJIS=['👍','❤️','😂','😮','🙏','🔥'];
+function pickReacao(id){pickM=pickM===id?null:id;renderThread(false);}
+async function reagir(id,e){
+  event.stopPropagation();
+  const c=conversas().find(x=>x.id===openC);if(!c)return;
+  const cur=reacs.find(r=>r.message_id===id&&r.autor==='suporte');
+  pickM=null;
+  if(cur&&cur.emoji===e){
+    reacs=reacs.filter(r=>r!==cur);renderThread(false);
+    const {error}=await sb.from('chat_reacoes').delete().eq('message_id',id).eq('autor','suporte');
+    if(error)toast('Erro: '+error.message);return;
+  }
+  reacs=reacs.filter(r=>!(r.message_id===id&&r.autor==='suporte')).concat([{message_id:id,autor:'suporte',emoji:e,user_id:openC}]);
+  renderThread(false);
+  const {error}=await sb.from('chat_reacoes').upsert({message_id:id,user_id:openC,autor:'suporte',emoji:e},{onConflict:'message_id,autor'});
+  if(error)toast(/relation|does not exist|schema cache/i.test(error.message)?'Falta correr o chat2.sql no Supabase.':'Erro: '+error.message);
+}
+/* nova conversa iniciada pelo painel */
+function novaConversa(){$('chNew').classList.toggle('hidden');$('qN').value='';$('resN').innerHTML='';if(!$('chNew').classList.contains('hidden'))$('qN').focus();}
+function pesqNova(){
+  const q=$('qN').value.trim().toLowerCase();
+  if(!q){$('resN').innerHTML='';return;}
+  const L=users.filter(r=>String(r.name||'').toLowerCase().includes(q)||String(r.phone||'').includes(q)).slice(0,6);
+  $('resN').innerHTML=L.length?L.map(r=>'<button onclick="iniciarConversa(\''+esc(normPhone(r.phone))+'\')">'+esc(r.name||'Sem nome')+'<em>'+esc(fmtPhone(r.phone))+'</em></button>').join(''):'<div class="empty">Nenhum cliente.</div>';
+}
+async function uidDe(phone){
+  const {data,error}=await sb.rpc('admin_user_id',{p:phone});
+  if(error){toast(/function|schema cache/i.test(error.message)?'Falta correr o chat2.sql no Supabase.':'Erro: '+error.message);return null;}
+  if(!data){toast('Este cliente não tem conta de acesso.');return null;}
+  return data;
+}
+async function iniciarConversa(phone){
+  const u=users.find(r=>normPhone(r.phone)===phone);
+  const uid=await uidDe(phone);if(!uid)return;
+  if(!conversas().some(c=>c.id===uid))extraC.set(uid,{name:u&&u.name,phone});
+  $('chNew').classList.add('hidden');
+  abrirConversa(uid);
 }
 async function enviarResposta(){
   const t=$('thIn').value.trim();if(!t||!openC)return;
@@ -813,7 +899,7 @@ function exportCsv(which){
     name='utilizadores-kanandzika.csv';
   }else{
     const L=filteredOrders();if(!L.length)return;
-    csv='﻿Pedido,Data,Tipo,Cliente,Telefone,Bairro,Mesa,Itens,Entrega,Total\n'+L.map(r=>[q(r.id),q(fmtDate(r.created_at)),q(r.type),q(r.name),q(r.phone),q(r.bairro),q(r.mesa),q((Array.isArray(r.items)?r.items:[]).map(i=>i.q+'x '+i.n).join(' + ')),q(r.fee),q(r.total)].join(',')).join('\n');
+    csv='﻿Pedido,Data,Tipo,Cliente,Telefone,Bairro,Mesa,Itens,Entrega,Total,Entregue,Pago\n'+L.map(r=>[q(r.id),q(fmtDate(r.created_at)),q(r.type),q(r.name),q(r.phone),q(r.bairro),q(r.mesa),q((Array.isArray(r.items)?r.items:[]).map(i=>i.q+'x '+i.n).join(' + ')),q(r.fee),q(r.total),q(r.type==='Delivery'?(r.entregue?'sim':'não'):'-'),q(r.pago?'sim':'não')].join(',')).join('\n');
     name='pedidos-kanandzika.csv';
   }
   const a=document.createElement('a');
@@ -845,6 +931,7 @@ function startRealtime(){
       .on('postgres_changes',{event:'*',schema:'public',table:'orders'},go)
       .on('postgres_changes',{event:'*',schema:'public',table:'feedback'},go)
       .on('postgres_changes',{event:'*',schema:'public',table:'chat_messages'},go)
+      .on('postgres_changes',{event:'*',schema:'public',table:'chat_reacoes'},go)
       .subscribe();
   }catch(e){}
 }
@@ -937,6 +1024,9 @@ async function concluirEntrega(){
   if(!E.ord||!confirm('Marcar esta entrega como concluída? O cliente deixa de ver o mapa.'))return;
   const id=E.ord.track_id;
   await sb.from('order_tracking').update({status:'encerrado'}).eq('track_id',id);
+  const eo=await sb.from('orders').update({entregue:true,entregue_em:new Date().toISOString()}).eq('track_id',id).select('id');
+  if(eo.error||!eo.data||!eo.data.length)toast('Entrega concluída, mas falta correr o faturacao.sql no Supabase.');
+  else{const o=orders.find(x=>x.track_id===id);if(o){o.entregue=true;renderAll();}}
   await sb.from('driver_location').delete().eq('track_id',id);
   fecharEntrega();
 }

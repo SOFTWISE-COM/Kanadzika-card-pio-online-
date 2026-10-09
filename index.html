@@ -72,81 +72,25 @@ button{
 /* SPLASH */
 
 #splash{
-  background:
-    radial-gradient(circle at 50% 35%,#08777a 0%,#005b60 35%,#003c40 100%);
+  background:#006466 url("assets/splash.jpg") center/cover no-repeat;
   flex-direction:column;
-  justify-content:center;
+  justify-content:flex-start;
   align-items:center;
 }
-
-.splash-logo{
-  width:170px;
-  height:170px;
-  border-radius:50%;
-  object-fit:cover;
-  box-shadow:
-    0 0 0 8px rgba(8,231,238,.06),
-    0 0 45px rgba(8,231,238,.4);
-}
-
-.progress-area{
-  width:74%;
-  max-width:310px;
-  margin-top:32px;
-  text-align:center;
-}
-
-.progress{
-  position:relative;
-  width:100%;
-  height:9px;
-  padding:2px;
-  border-radius:20px;
-  background:rgba(255,255,255,.12);
-  border:1px solid rgba(255,255,255,.12);
-  overflow:hidden;
-  box-shadow:
-    inset 0 1px 4px rgba(0,0,0,.35),
-    0 0 15px rgba(8,231,238,.08);
-}
-
-.progress-bar{
-  position:relative;
-  width:0%;
-  height:100%;
-  border-radius:20px;
-  background:linear-gradient(
-    90deg,
-    #04cbd3,
-    #08e7ee,
-    #8fffff
-  );
-  box-shadow:
-    0 0 8px rgba(8,231,238,.8),
-    0 0 18px rgba(8,231,238,.45);
-  transition:width .08s linear;
-}
-
-.progress-bar::after{
-  content:"";
-  position:absolute;
-  top:0;
-  left:-35px;
-  width:35px;
-  height:100%;
-  background:linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.75),
-    transparent
-  );
-  animation:shine 1.2s linear infinite;
-}
-
-@keyframes shine{
-  from{left:-35px}
-  to{left:100%}
-}
+.splash-info{position:absolute;left:0;right:0;top:70%;display:flex;flex-direction:column;align-items:center;padding:0 8%;text-align:center}
+.splash-tip{min-height:40px;max-width:320px;font-size:14px;line-height:1.4;font-weight:600;color:#eaffff;text-shadow:0 1px 6px rgba(0,40,45,.7);transition:opacity .35s}
+.splash-tip.out{opacity:0}
+.run-area{position:relative;width:78%;max-width:320px;margin-top:26px}
+.run-track{position:relative;width:100%;height:10px;border-radius:20px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 4px rgba(0,0,0,.35)}
+.run-fill{height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#04cbd3,#08e7ee,#8fffff);box-shadow:0 0 10px rgba(8,231,238,.7)}
+.runner{position:absolute;left:0;bottom:8px;width:44px;height:52px;margin-left:-22px;will-change:left}
+.runner svg{width:100%;height:100%;overflow:visible}
+.runner .leg1,.runner .leg2{transform-origin:22px 30px;animation:legs .28s ease-in-out infinite alternate}
+.runner .leg2{animation-direction:alternate-reverse}
+.runner .body{animation:bob .28s ease-in-out infinite alternate}
+@keyframes legs{from{transform:rotate(-38deg)}to{transform:rotate(38deg)}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+.run-pct{margin-top:10px;font-size:13px;font-weight:700;letter-spacing:.5px;color:#dfffff;text-shadow:0 1px 4px rgba(0,40,45,.6)}
 
 .percent{
   margin-top:11px;
@@ -156,12 +100,7 @@ button{
   color:#dfffff;
 }
 
-.version{
-  position:absolute;
-  bottom:calc(16px + var(--sab));
-  font-size:11px;
-  color:rgba(255,255,255,.55);
-}
+.version{margin-top:6px;font-size:11px;letter-spacing:.4px;color:rgba(255,255,255,.75);text-shadow:0 1px 4px rgba(0,40,45,.6)}
 
 
 /* INTRO */
@@ -703,7 +642,7 @@ button{
   border:1.5px solid var(--cyan);background:rgba(0,48,51,.85);
   color:#fff;font-size:15px;font-weight:700;z-index:6;
 }
-#splash .install-btn{bottom:calc(52px + var(--sab))}
+#splash .install-btn{bottom:calc(22px + var(--sab))}
 .install-btn.hidden{display:none}
 .toast{
   position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top));
@@ -756,26 +695,28 @@ button{
 
 <section id="splash" class="screen active">
 
-  <img
-    src="assets/logo.png"
-    class="splash-logo"
-    alt="Kanandzika">
+  <div class="splash-info">
+    <div class="splash-tip" id="splashTip"></div>
 
-  <div class="progress-area">
-
-    <div class="progress">
-      <div
-        id="progressBar"
-        class="progress-bar">
+    <div class="run-area">
+      <div class="runner" id="runner">
+        <svg viewBox="0 0 44 52" aria-hidden="true">
+          <g class="leg1"><path d="M22 30 L22 46" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
+          <g class="leg2"><path d="M22 30 L22 46" stroke="#bff" stroke-width="4" stroke-linecap="round"/></g>
+          <g class="body">
+            <circle cx="22" cy="10" r="6" fill="#fff"/>
+            <path d="M22 16 L22 31" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+            <path d="M22 20 L33 14" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+            <ellipse cx="34" cy="10" rx="9" ry="2.6" fill="#08e7ee"/>
+            <path d="M28 8 Q34 0 40 8 Z" fill="#ffb020"/>
+          </g>
+        </svg>
       </div>
+      <div class="run-track"><div class="run-fill" id="runFill"></div></div>
+      <div class="run-pct" id="runPct">0%</div>
     </div>
 
-    <div
-      id="percent"
-      class="percent">
-      0%
-    </div>
-
+    <div class="version" id="appVersion">Versão 1.7.0</div>
   </div>
 
   <button class="install-btn" onclick="installApp()" style="display:flex;align-items:center;justify-content:center">
@@ -787,9 +728,6 @@ button{
   </svg>
   <span style="margin-left:8px">Instalar app</span>
 </button>
-  <div class="version">
-    Versão 1.0.0
-  </div>
 
 </section>
 
@@ -1083,8 +1021,30 @@ const splash=document.getElementById("splash");
 const intro=document.getElementById("intro");
 const login=document.getElementById("login");
 
-const progressBar=document.getElementById("progressBar");
-const percent=document.getElementById("percent");
+const runFill=document.getElementById("runFill");
+const runner=document.getElementById("runner");
+const runPct=document.getElementById("runPct");
+const tipEl=document.getElementById("splashTip");
+
+/* benefícios do app, em ordem aleatória */
+const TIPS=[
+  "🛵 Peça em segundos e receba em casa, sem filas.",
+  "📍 Acompanhe a sua entrega em tempo real no mapa.",
+  "🍔 Todo o cardápio Kanandzika a um toque.",
+  "💬 Fale com o suporte directamente pelo app.",
+  "🔔 Receba ofertas e avisos exclusivos antes de toda gente.",
+  "🧾 Veja o histórico dos seus pedidos quando quiser.",
+  "⭐ Os clientes do app têm benefícios exclusivos.",
+  "🪑 Está no local? Peça pela mesa, sem esperar."
+];
+let tipOrder=TIPS.map((_,i)=>i).sort(()=>Math.random()-.5),tipI=0;
+function showTip(){
+  const first=!tipEl.textContent;
+  tipEl.classList.add("out");
+  setTimeout(()=>{tipEl.textContent=TIPS[tipOrder[tipI++%TIPS.length]];tipEl.classList.remove("out");},first?0:350);
+}
+showTip();
+const tipTimer=setInterval(showTip,2300);
 
 let progress=0;
 
@@ -1092,12 +1052,13 @@ const timer=setInterval(()=>{
 
   progress++;
 
-  progressBar.style.width=progress+"%";
-  percent.textContent=progress+"%";
+  runFill.style.width=progress+"%";
+  runner.style.left=progress+"%";
+  runPct.textContent=progress+"%";
 
   if(progress>=100){
 
-    clearInterval(timer);
+    clearInterval(timer);clearInterval(tipTimer);
 
     setTimeout(()=>{
 

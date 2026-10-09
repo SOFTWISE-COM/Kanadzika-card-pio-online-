@@ -215,6 +215,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .msg.sup{align-self:flex-start;background:#0a4248;border:1px solid #15575e;border-bottom-left-radius:5px}
 .msg.sup b{display:block;font-size:11px;color:var(--cyan);margin-bottom:2px}
 .msg.auto{opacity:.85;font-style:italic}
+.msg{cursor:pointer}.rx{display:flex;gap:4px;margin-top:-5px}.rx span{background:#0a4248;border:1px solid #15575e;border-radius:12px;padding:1px 7px;font-size:14px}.rxp{display:flex;gap:4px;background:#073b41;border:1px solid #15575e;border-radius:18px;padding:4px 6px}.rxp button{background:none;border:0;font-size:22px;padding:2px 5px;border-radius:12px;color:inherit}.rxp button.on{background:rgba(0,229,255,.2)}
 .chat-empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;padding:20px}
 .chat-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(14px + var(--sab));border-top:1px solid #15575e;background:var(--bg)}
 .chat-bar textarea{flex:1;min-height:46px;max-height:110px;border:1.5px solid var(--cyan);border-radius:16px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none}
@@ -1057,7 +1058,8 @@ async function sendFeedback(){
 }
 
 /* ---------- chat com o suporte ---------- */
-let chat={msgs:[],ch:null,uid:null,poll:null};
+let chat={msgs:[],ch:null,uid:null,poll:null,reacs:[],pick:null};
+const EMOJIS=['👍','❤️','😂','😮','🙏','🔥'];
 const chatSeen=()=>Number(load("kz_chat_seen",0))||0;
 const chatOpen=()=>$("sh-chat").classList.contains("open");
 function chatBadge(){
@@ -1067,14 +1069,38 @@ function chatBadge(){
 function hhmm(s){const d=new Date(s);return pad(d.getHours())+":"+pad(d.getMinutes());}
 function paintChat(){
   const el=$("chatBody"),perto=el.scrollHeight-el.scrollTop-el.clientHeight<120;
-  el.innerHTML=chat.msgs.length?chat.msgs.map(m=>`<div class="msg ${m.sender==="cliente"?"me":"sup"} ${m.sender==="auto"?"auto":""}">${m.sender!=="cliente"?"<b>Suporte Kanandzika</b>":""}${esc(m.message)}<small>${hhmm(m.created_at)}</small></div>`).join(""):'<div class="chat-empty"><b>Olá! Como podemos ajudar?</b><br>Escreva a sua mensagem e a nossa equipa responde por aqui.</div>';
+  el.innerHTML=chat.msgs.length?chat.msgs.map(m=>{
+    const me=m.sender==="cliente",al=me?"flex-end":"flex-start";
+    const rs=chat.reacs.filter(r=>r.message_id===m.id),mine=(rs.find(r=>r.autor==="cliente")||{}).emoji;
+    return `<div class="msg ${me?"me":"sup"} ${m.sender==="auto"?"auto":""}" onclick="rxPick(${m.id})">${!me?"<b>Suporte Kanandzika</b>":""}${esc(m.message)}<small>${hhmm(m.created_at)}</small></div>`+
+      (rs.length?`<div class="rx" style="align-self:${al}">${rs.map(r=>`<span>${r.emoji}</span>`).join("")}</div>`:"")+
+      (chat.pick===m.id?`<div class="rxp" style="align-self:${al}">${EMOJIS.map(e=>`<button class="${e===mine?"on":""}" onclick="event.stopPropagation();rxSet(${m.id},'${e}')">${e}</button>`).join("")}</div>`:"");
+  }).join(""):'<div class="chat-empty"><b>Olá! Como podemos ajudar?</b><br>Escreva a sua mensagem e a nossa equipa responde por aqui.</div>';
   if(perto||!el.dataset.ok){el.scrollTop=el.scrollHeight;el.dataset.ok="1";}
 }
 function addMsg(m){
   if(!m||chat.msgs.some(x=>x.id===m.id))return false;
   chat.msgs.push(m);chat.msgs.sort((a,b)=>a.id-b.id);return true;
 }
+function rxPick(id){chat.pick=chat.pick===id?null:id;paintChat();}
+async function fetchReacs(){
+  const {data,error}=await sb.from("chat_reacoes").select("message_id,autor,emoji");
+  if(!error&&data)chat.reacs=data;
+}
+async function rxSet(id,e){
+  const cur=chat.reacs.find(r=>r.message_id===id&&r.autor==="cliente");
+  chat.pick=null;
+  if(cur&&cur.emoji===e){
+    chat.reacs=chat.reacs.filter(r=>r!==cur);paintChat();
+    await sb.from("chat_reacoes").delete().eq("message_id",id).eq("autor","cliente");return;
+  }
+  chat.reacs=chat.reacs.filter(r=>!(r.message_id===id&&r.autor==="cliente")).concat([{message_id:id,autor:"cliente",emoji:e}]);
+  paintChat();
+  const {error}=await sb.from("chat_reacoes").upsert({message_id:id,user_id:chat.uid,autor:"cliente",emoji:e},{onConflict:"message_id,autor"});
+  if(error)toast("Não foi possível reagir. Tente mais tarde.");
+}
 async function fetchChat(){
+  fetchReacs().then(()=>{if(chatOpen())paintChat();});
   const {data,error}=await sb.from("chat_messages").select("id,sender,message,created_at").order("id",{ascending:true}).limit(300);
   if(error)return false;
   (data||[]).forEach(addMsg);return true;
@@ -1093,7 +1119,9 @@ async function initChat(){
           else toast("Nova mensagem do suporte");
         }
         chatBadge();if(chatOpen())paintChat();
-      }).subscribe();
+      })
+      .on("postgres_changes",{event:"*",schema:"public",table:"chat_reacoes"},()=>{fetchReacs().then(()=>{if(chatOpen())paintChat();});})
+      .subscribe();
     // segurança: consulta de 8 em 8 s se o tempo real falhar
     chat.poll=setInterval(async()=>{
       if(document.hidden)return;
