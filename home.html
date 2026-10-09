@@ -1339,7 +1339,8 @@ function marcaAtivo(){try{localStorage.setItem(WL_KEY,String(Date.now()));}catch
 function ausente(){const l=Number(localStorage.getItem(WL_KEY))||0;return l&&Date.now()-l>AUSENCIA;}
 function iniciarBoasVindas(){
   let f=null;try{f=localStorage.getItem("kz_welcome");localStorage.removeItem("kz_welcome");}catch(e){}
-  if(f)showWelcome(f);else if(ausente())showWelcome("volta");
+  let ses=false;try{ses=sessionStorage.getItem("kz_ws")==="1";sessionStorage.setItem("kz_ws","1");}catch(e){}
+  if(f)showWelcome(f);else if(!ses||ausente())showWelcome("volta");
   marcaAtivo();
   setInterval(()=>{if(!document.hidden)marcaAtivo();},30000);
   document.addEventListener("visibilitychange",()=>{
@@ -1358,7 +1359,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 paintAvatar();
 reenviarFoto();
 if(user){
-  $("hello").textContent="Olá, "+user.name.trim().split(/\s+/)[0];
+  {const h=new Date().getHours();$("hello").textContent=(h<12?"Bom dia":h<18?"Boa tarde":"Boa noite")+", "+user.name.trim().split(/\s+/)[0];}
   persistCart();
 }
 if("serviceWorker" in navigator){
