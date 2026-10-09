@@ -193,6 +193,11 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .avatar-big img{width:100%;height:100%;object-fit:cover}
 .avatar-big svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:1.8}
 .foto-link{display:block;margin:0 auto 14px;background:none;border:0;color:var(--cyan);font-size:13px;font-weight:bold}
+.fb-stars{display:flex;justify-content:center;gap:6px;margin:6px 0 14px}
+.fb-stars button{background:none;border:0;padding:4px;color:#3b6a70;transition:transform .15s,color .15s}
+.fb-stars button.on{color:#ffc542;transform:scale(1.08)}
+.fb-stars svg{width:38px;height:38px;fill:currentColor}
+.fb-text{width:100%;min-height:110px;border:1.5px solid var(--cyan);border-radius:14px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none;margin-bottom:12px}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -502,6 +507,19 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
     <div class="trk-eta" id="trkEta">A ligar…</div>
     <div class="trk-sub" id="trkSub"></div>
     <button class="btn alt trk" id="trkGps" onclick="startMyGps()" style="display:none"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Partilhar a minha localização</button>
+  </div>
+</div>
+
+<div class="sheet" id="sh-fb">
+  <div class="sh-head">
+    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h2>A sua opinião</h2>
+  </div>
+  <div class="sh-body">
+    <div class="card" style="text-align:center"><b>Como foi a sua experiência?</b><div class="muted" style="margin-top:4px">Diga-nos o que podemos melhorar.</div></div>
+    <div class="fb-stars" id="fbStars"></div>
+    <textarea class="fb-text" id="fbText" maxlength="500" placeholder="Escreva aqui o seu comentário (opcional)"></textarea>
+    <button class="btn" id="fbSend" onclick="sendFeedback()">Enviar feedback</button>
   </div>
 </div>
 
@@ -878,7 +896,7 @@ async function reenviarFoto(){
 }
 function renderProfile(){
   const src=avatarSrc();
-  $("profileBody").innerHTML=`<div class="avatar-big">${src?`<img src="${src}" alt="">`:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'}</div><button class="foto-link" onclick="trocarFoto()">${src?"Alterar foto":"Adicionar foto"}</button><div class="card"><div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="logout()">Sair da conta</button>`;
+  $("profileBody").innerHTML=`<div class="avatar-big">${src?`<img src="${src}" alt="">`:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'}</div><button class="foto-link" onclick="trocarFoto()">${src?"Alterar foto":"Adicionar foto"}</button><div class="card"><div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="openFeedback()">Dar feedback</button><button class="btn alt" onclick="logout()">Sair da conta</button>`;
 }
 function logout(){const go=()=>{localStorage.removeItem("kz_session");localStorage.removeItem("kz_user");location.replace("index.html");};try{sb.auth.signOut().then(go,go);}catch(e){go();}}
 
@@ -1005,6 +1023,21 @@ function stopTrack(keepDone){
 function closeTrack(){stopTrack();closeSheets();}
 (function(){const o=openSheet;openSheet=function(id){if(id!=="sh-track")stopTrack();return o(id);};})();
 (function(){const c=closeSheets;closeSheets=function(){stopTrack();return c();};})();
+
+/* ---------- feedback ---------- */
+let fbRating=0;
+function paintStars(){
+  $("fbStars").innerHTML=[1,2,3,4,5].map(n=>`<button class="${n<=fbRating?"on":""}" onclick="fbRating=${n};paintStars()" aria-label="${n} estrelas"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg></button>`).join("");
+}
+function openFeedback(){fbRating=0;$("fbText").value="";paintStars();openSheet("sh-fb");}
+async function sendFeedback(){
+  if(!fbRating)return toast("Escolha de 1 a 5 estrelas.");
+  const b=$("fbSend");b.disabled=true;
+  const {error}=await sb.from("feedback").insert({name:user.name,phone:user.phone,rating:fbRating,message:$("fbText").value.trim().slice(0,500)||null});
+  b.disabled=false;
+  if(error)return toast("Não foi possível enviar. Tente mais tarde.");
+  closeSheets();toast("Obrigado pelo seu feedback!");
+}
 
 syncPending();
 markProducts();
