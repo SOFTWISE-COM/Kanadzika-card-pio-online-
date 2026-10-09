@@ -231,6 +231,25 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .noresult{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;padding:26px 10px;background:#0a4248;border:1px dashed #15575e;border-radius:16px}
 .noresult b{display:block;color:#fff;font-size:14px;margin-bottom:4px}
 .product mark{background:rgba(0,229,255,.25);color:inherit;border-radius:3px;padding:0 1px}
+/* boas-vindas + banner de notificação */
+.corp{font-family:"IBM Plex Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+#welcome{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,28,31,.82);backdrop-filter:blur(3px);padding:24px}
+#welcome.show{display:flex}
+#welcome canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.wl-card{position:relative;max-width:340px;width:100%;text-align:center;background:linear-gradient(160deg,#08666b,#04383d);border:1px solid #1d7a80;border-radius:22px;padding:26px 22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:wlIn .5s cubic-bezier(.2,1.2,.3,1)}
+@keyframes wlIn{from{transform:scale(.8) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.wl-card .k{font-size:11px;letter-spacing:2px;color:#8fffff;text-transform:uppercase;font-weight:600}
+.wl-card h2{font-size:22px;line-height:1.25;margin:8px 0 10px;font-weight:600;color:#fff}
+.wl-card p{font-size:14.5px;line-height:1.55;color:#d9f4f5;font-weight:400}
+.wl-card button{margin-top:16px;width:100%;height:44px;border:0;border-radius:12px;background:#00e5ff;color:#00282d;font:600 14px "IBM Plex Sans",sans-serif}
+.wl-card button.alt{background:transparent;border:1px solid #1d7a80;color:#cdeff1;margin-top:8px}
+#ntBanner{position:fixed;left:10px;right:10px;top:calc(8px + env(safe-area-inset-top));z-index:300;transform:translateY(-130%);transition:transform .35s cubic-bezier(.2,.9,.3,1);background:#fff;color:#0b2a2e;border-radius:16px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;gap:10px;align-items:flex-start;cursor:pointer;max-width:520px;margin:0 auto}
+#ntBanner.show{transform:none}
+#ntBanner img{width:36px;height:36px;border-radius:9px;flex:none}
+#ntBanner b{display:block;font-size:14px;font-weight:600}
+#ntBanner span{display:block;font-size:13px;line-height:1.4;color:#41585c;max-height:2.8em;overflow:hidden;white-space:pre-line}
+#ntBanner small{margin-left:auto;font-size:11px;color:#6f8488;flex:none}
+.trk-chip{position:absolute;top:72px;left:50%;transform:translateX(-50%);z-index:1100;background:#fff;color:#0b2a2e;border-radius:18px;padding:8px 16px;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.4);display:flex;gap:8px;align-items:center;white-space:nowrap}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -256,6 +275,8 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
   window.addEventListener('load',fit);
 })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -539,6 +560,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
     <h2><svg class="ico"><use href="#i-entrega"/></svg>Acompanhar entrega</h2>
   </div>
   <div id="trkMap" class="trk-map"></div>
+  <div class="trk-chip corp" id="trkChip" style="display:none"></div>
   <div class="trk-box">
     <div class="trk-eta" id="trkEta">A ligar…</div>
     <div class="trk-sub" id="trkSub"></div>
@@ -830,8 +852,8 @@ function sendOrder(){
   cart={};persistCart();
   state.type=null;state.bairro="";state.ref="";state.mesa=0;
   $("bairro").value="";$("ref").value="";setType(null);setMesa(0);
-  setNav("Pedidos");openSheet("sh-orders");
   toast("Compra confirmada. Pedido enviado!");
+  if(o.track_id){openTrack(o.track_id);}else{setNav("Pedidos");openSheet("sh-orders");}
   enviando=false;
 }
 
@@ -967,7 +989,7 @@ async function openTrack(id){
   T={id,map:T.map,mk:T.mk,me:null,drv:null,watch:null,ch:null,poll:null,push:0,done:false,fit:false};
   Object.values(T.mk).forEach(m=>m.remove());T.mk={};
   openSheet("sh-track");
-  tEl("trkEta").textContent="A ligar…";tEl("trkSub").textContent="";
+  tEl("trkEta").textContent="A ligar…";tEl("trkSub").textContent="";tEl("trkChip").style.display="none";
   if(!T.map)T.map=Rastreio.mapa("trkMap");
   setTimeout(()=>T.map.invalidateSize(),350);
   try{
@@ -990,8 +1012,9 @@ async function openTrack(id){
     const {data:t2}=await sb.from("order_tracking").select("status").eq("track_id",id).maybeSingle();
     if(t2&&t2.status==="encerrado")finishTrack();
   },10000);
-  tEl("trkEta").textContent="À espera do entregador…";
-  tEl("trkSub").textContent="Assim que sair com o seu pedido, vai vê-lo aqui no mapa.";
+  tEl("trkEta").textContent="A calcular o trajeto…";
+  tEl("trkSub").textContent="Assim que sair com o seu pedido, vai ver a moto aqui no mapa.";
+  refreshTrack();
 }
 function startMyGps(){
   if(!navigator.geolocation){tEl("trkSub").textContent="Este telemóvel não permite localização.";return;}
@@ -1017,18 +1040,39 @@ function setDriver(d){
   refreshTrack();
 }
 async function refreshTrack(){
-  if(T.done||!T.drv)return;
+  if(T.done)return;
+  const LJ=Rastreio.LOJA,chip=tEl("trkChip");
+  const setChip=t=>{chip.innerHTML=Rastreio.S(Rastreio.ICO.moto,18)+t;chip.style.display="flex";};
+  Rastreio.marcar(T.map,T.mk,"loja",LJ,"loja");
+  // Ainda sem entregador na estrada: mostra já o trajeto previsto, da loja até ao cliente
+  if(!T.drv){
+    if(!T.me){Rastreio.enquadrar(T.map,[LJ],false);return;}
+    Rastreio.marcar(T.map,T.mk,"plan",LJ,"drv");
+    if(!T.fit){Rastreio.enquadrar(T.map,[LJ,T.me],true);T.fit=true;}
+    const e=await Rastreio.eta(LJ,T.me);
+    if(T.drv||T.done)return;
+    Rastreio.rota(T.map,T.mk,e,LJ,T.me);
+    const t="≈ "+Rastreio.fmtMin(e.segundos);
+    Rastreio.etiqueta(T.map,T.mk,e,t);setChip(t+" · "+Rastreio.fmtDist(e.metros));
+    tEl("trkEta").textContent="Entrega estimada em "+t;
+    tEl("trkSub").textContent="Percurso da loja até si"+(e.aprox?" (estimativa)":"")+". A moto sai assim que o pedido estiver pronto.";
+    return;
+  }
+  if(T.mk.plan){T.mk.plan.remove();delete T.mk.plan;}
   const stale=(Date.now()-new Date(T.drv.at).getTime())>90000;
   if(!T.fit){Rastreio.enquadrar(T.map,[T.drv,T.me],true);T.fit=true;}else Rastreio.enquadrar(T.map,[T.drv,T.me],false);
   if(!T.me){tEl("trkEta").textContent="Entregador a caminho";tEl("trkSub").textContent="Partilhe a sua localização para ver o tempo estimado.";tEl("trkGps").style.display="block";return;}
   const e=await Rastreio.eta(T.drv,T.me);
   Rastreio.rota(T.map,T.mk,e,T.drv,T.me);
-  if(e.metros<40){tEl("trkEta").textContent="O entregador chegou!";tEl("trkSub").textContent="Está mesmo aí perto.";return;}
-  tEl("trkEta").textContent="Chega em ≈ "+Rastreio.fmtMin(e.segundos);
+  if(e.metros<40){tEl("trkEta").textContent="O entregador chegou!";tEl("trkSub").textContent="Está mesmo aí perto.";setChip("Chegou!");return;}
+  const t="≈ "+Rastreio.fmtMin(e.segundos);
+  Rastreio.etiqueta(T.map,T.mk,e,t);setChip(t+" · "+Rastreio.fmtDist(e.metros));
+  tEl("trkEta").textContent="Chega em "+t;
   tEl("trkSub").textContent=Rastreio.fmtDist(e.metros)+" de distância"+(e.aprox?" (estimativa)":"")+" · sinal "+Rastreio.ago(T.drv.at)+(stale?" · sem sinal recente":"");
 }
 function finishTrack(){
   T.done=true;stopTrack(true);
+  tEl("trkChip").style.display="none";
   tEl("trkEta").textContent="Entrega concluída";
   tEl("trkSub").textContent="Obrigado pela preferência! Bom apetite.";
 }
@@ -1169,12 +1213,18 @@ function ntBadge(){
 }
 function ntAdd(m){if(NT.list.some(x=>x.id===m.id))return false;NT.list.push(m);NT.list.sort((a,b)=>b.id-a.id);return true;}
 function ntAlert(m){
-  toast(m.titulo);
+  showBanner(m.titulo,m.mensagem);
   try{
     if("Notification" in window&&Notification.permission==="granted"&&document.hidden&&navigator.serviceWorker)
       navigator.serviceWorker.ready.then(r=>r.showNotification(m.titulo,{body:m.mensagem.slice(0,180),icon:"assets/icon-192.png",badge:"assets/icon-192.png",tag:"kz-nt-"+m.id,data:{url:"home.html"}}));
   }catch(e){}
 }
+let bnT;
+function showBanner(t,m){
+  $("nbT").textContent=t;$("nbM").textContent=m;$("ntBanner").classList.add("show");
+  clearTimeout(bnT);bnT=setTimeout(hideBanner,7000);
+}
+function hideBanner(){$("ntBanner").classList.remove("show");}
 async function fetchNotif(){
   const {data,error}=await sb.from("notificacoes").select("id,titulo,mensagem,created_at").order("id",{ascending:false}).limit(50);
   if(error||!data)return;
@@ -1191,7 +1241,7 @@ function paintNotif(){
 function openNotif(){
   openSheet("sh-notif");paintNotif();
   if(NT.list.length){save("kz_notif_seen",NT.list[0].id);ntBadge();}
-  try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();}catch(e){}
+  ativarPush(true);
 }
 async function initNotif(){
   try{
@@ -1207,10 +1257,73 @@ async function initNotif(){
   }catch(e){}
 }
 
+/* ---------- notificações no telemóvel (push) ---------- */
+const VAPID_PUBLIC="BLzEsIHLFUQy6OfkwGJrT0cjYCETrqeW3lSLxCbDQrKCm6TTDEJIgBKNIr_latecGCcflYEJoacVLiSiPfCqFys";
+function b64u(b){const p="=".repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)));}
+async function ativarPush(pedir){
+  try{
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))return false;
+    if(Notification.permission==="default"&&pedir)await Notification.requestPermission();
+    if(Notification.permission!=="granted")return false;
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
+    const j=sub.toJSON();
+    await sb.rpc("registar_push",{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_phone:String(user.phone).replace(/\D/g,"").slice(-9)});
+    return true;
+  }catch(e){return false;}
+}
+if("serviceWorker" in navigator)navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.type==="push"){fetchNotif();fetchChat().then(()=>{chatBadge();if(chatOpen())paintChat();});}});
+
+/* ---------- boas-vindas com celebração ---------- */
+const AUSENCIA=10*60*1000,WL_KEY="kz_last";
+let wlTimer=null,cfRaf=null;
+const primeiroNome=()=>String((user&&user.name)||"").trim().split(/\s+/)[0]||"cliente";
+function confetti(){
+  const cv=$("confetti"),cx=cv.getContext("2d"),dpr=window.devicePixelRatio||1;
+  cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;cx.scale(dpr,dpr);
+  const cores=["#00e5ff","#ffffff","#ffd54a","#8fffff","#ff6b81","#7dffb3"];
+  const P=Array.from({length:150},()=>({x:innerWidth/2+(Math.random()-.5)*80,y:innerHeight*.42,vx:(Math.random()-.5)*11,vy:-Math.random()*13-3,w:5+Math.random()*6,h:8+Math.random()*8,r:Math.random()*6,vr:(Math.random()-.5)*.35,c:cores[Math.random()*cores.length|0]}));
+  const t0=performance.now();cancelAnimationFrame(cfRaf);
+  (function f(t){
+    const e=t-t0;cx.clearRect(0,0,innerWidth,innerHeight);
+    P.forEach(q=>{q.vy+=.28;q.vx*=.992;q.x+=q.vx;q.y+=q.vy;q.r+=q.vr;
+      cx.save();cx.globalAlpha=Math.max(0,1-e/4200);cx.translate(q.x,q.y);cx.rotate(q.r);cx.fillStyle=q.c;cx.fillRect(-q.w/2,-q.h/2,q.w,q.h);cx.restore();});
+    if(e<4200)cfRaf=requestAnimationFrame(f);else cx.clearRect(0,0,innerWidth,innerHeight);
+  })(t0);
+}
+function showWelcome(tipo){
+  const n=primeiroNome(),novo=tipo==="novo";
+  $("wlK").textContent=novo?"Kanandzika Lanchonete Premium":"Que bom revê-lo(a)";
+  $("wlH").textContent=novo?"Seja bem-vindo(a), "+n+"!":"Bem-vindo(a) de volta, "+n+"!";
+  $("wlP").textContent=novo
+    ?"A sua conta foi criada com sucesso. Obrigado por fazer parte da família Kanandzika. Escolha o seu lanche e faça o primeiro pedido em poucos toques."
+    :"Ficamos satisfeitos por voltar a contar consigo. O cardápio está atualizado e o seu próximo pedido está a poucos toques.";
+  $("wlPush").style.display=("Notification" in window&&Notification.permission==="default")?"block":"none";
+  $("welcome").classList.add("show");confetti();
+  clearTimeout(wlTimer);wlTimer=setTimeout(closeWelcome,7000);
+}
+function closeWelcome(){$("welcome").classList.remove("show");clearTimeout(wlTimer);cancelAnimationFrame(cfRaf);}
+function marcaAtivo(){try{localStorage.setItem(WL_KEY,String(Date.now()));}catch(e){}}
+function ausente(){const l=Number(localStorage.getItem(WL_KEY))||0;return l&&Date.now()-l>AUSENCIA;}
+function iniciarBoasVindas(){
+  let f=null;try{f=localStorage.getItem("kz_welcome");localStorage.removeItem("kz_welcome");}catch(e){}
+  if(f)showWelcome(f);else if(ausente())showWelcome("volta");
+  marcaAtivo();
+  setInterval(()=>{if(!document.hidden)marcaAtivo();},30000);
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){marcaAtivo();return;}
+    if(ausente())showWelcome("volta");
+    marcaAtivo();
+  });
+  ativarPush(false);
+}
+
 syncPending();
 markProducts();
 initChat();
 initNotif();
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",iniciarBoasVindas);else iniciarBoasVindas();
 paintAvatar();
 reenviarFoto();
 if(user){
@@ -1223,5 +1336,13 @@ if("serviceWorker" in navigator){
 
 </script>
 <script src="perfil.js"></script>
+<div id="welcome" class="corp" onclick="closeWelcome()"><canvas id="confetti"></canvas>
+  <div class="wl-card" onclick="event.stopPropagation()">
+    <div class="k" id="wlK"></div><h2 id="wlH"></h2><p id="wlP"></p>
+    <button id="wlPush" style="display:none" onclick="ativarPush(true);closeWelcome()">Ativar notificações</button>
+    <button class="alt" onclick="closeWelcome()">Continuar</button>
+  </div>
+</div>
+<div id="ntBanner" class="corp" onclick="openNotif();hideBanner()"><img src="assets/icon-192.png" alt=""><div><b id="nbT"></b><span id="nbM"></span></div><small>agora</small></div>
 </body>
 </html>

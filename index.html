@@ -77,19 +77,21 @@ button{
   justify-content:flex-start;
   align-items:center;
 }
-.splash-info{position:absolute;left:0;right:0;top:70%;display:flex;flex-direction:column;align-items:center;padding:0 8%;text-align:center}
-.splash-tip{min-height:40px;max-width:320px;font-size:14px;line-height:1.4;font-weight:600;color:#eaffff;text-shadow:0 1px 6px rgba(0,40,45,.7);transition:opacity .35s}
+.splash-info{position:absolute;left:0;right:0;top:69%;display:flex;flex-direction:column;align-items:center;padding:0 8%;text-align:center}
+.splash-tip{min-height:40px;max-width:320px;font-family:"IBM Plex Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;font-weight:500;letter-spacing:.1px;color:#eaffff;text-shadow:0 1px 6px rgba(0,40,45,.7);transition:opacity .35s}
 .splash-tip.out{opacity:0}
-.run-area{position:relative;width:78%;max-width:320px;margin-top:26px}
+.run-area{position:relative;width:78%;max-width:320px;margin-top:44px}
 .run-track{position:relative;width:100%;height:10px;border-radius:20px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 4px rgba(0,0,0,.35)}
 .run-fill{height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#04cbd3,#08e7ee,#8fffff);box-shadow:0 0 10px rgba(8,231,238,.7)}
-.runner{position:absolute;left:0;bottom:8px;width:44px;height:52px;margin-left:-22px;will-change:left}
+.runner{position:absolute;left:0;bottom:33px;width:84px;height:49px;margin-left:-42px;will-change:left}
 .runner svg{width:100%;height:100%;overflow:visible}
-.runner .leg1,.runner .leg2{transform-origin:22px 30px;animation:legs .28s ease-in-out infinite alternate}
-.runner .leg2{animation-direction:alternate-reverse}
-.runner .body{animation:bob .28s ease-in-out infinite alternate}
-@keyframes legs{from{transform:rotate(-38deg)}to{transform:rotate(38deg)}}
-@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+.runner .wheel{transform-box:fill-box;transform-origin:center;animation:spin .35s linear infinite}
+.runner .bike{animation:rumble .18s ease-in-out infinite alternate}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rumble{from{transform:translateY(0)}to{transform:translateY(-.8px)}}
+.runner .puff{fill:#e8fbfb;opacity:0;transform-box:fill-box;transform-origin:center;animation:puff 1.1s ease-out infinite}
+.runner .p2{animation-delay:.28s}.runner .p3{animation-delay:.56s}.runner .p4{animation-delay:.84s}
+@keyframes puff{0%{opacity:.85;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(-38px,-12px) scale(1.9)}}
 .run-pct{margin-top:10px;font-size:13px;font-weight:700;letter-spacing:.5px;color:#dfffff;text-shadow:0 1px 4px rgba(0,40,45,.6)}
 
 .percent{
@@ -686,6 +688,8 @@ button{
   window.addEventListener('load',fit);
 })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -700,15 +704,31 @@ button{
 
     <div class="run-area">
       <div class="runner" id="runner">
-        <svg viewBox="0 0 44 52" aria-hidden="true">
-          <g class="leg1"><path d="M22 30 L22 46" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
-          <g class="leg2"><path d="M22 30 L22 46" stroke="#bff" stroke-width="4" stroke-linecap="round"/></g>
-          <g class="body">
-            <circle cx="22" cy="10" r="6" fill="#fff"/>
-            <path d="M22 16 L22 31" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
-            <path d="M22 20 L33 14" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-            <ellipse cx="34" cy="10" rx="9" ry="2.6" fill="#08e7ee"/>
-            <path d="M28 8 Q34 0 40 8 Z" fill="#ffb020"/>
+        <svg viewBox="0 0 96 58" aria-hidden="true">
+          <circle class="puff p1" cx="8" cy="43" r="5.5"/><circle class="puff p2" cx="8" cy="43" r="5.5"/>
+          <circle class="puff p3" cx="8" cy="43" r="5.5"/><circle class="puff p4" cx="8" cy="43" r="5.5"/>
+          <g class="bike">
+            <!-- caixa de entregas -->
+            <rect x="6" y="14" width="22" height="18" rx="3" fill="#0a8b92" stroke="#fff" stroke-width="1.6"/>
+            <path d="M6 21h22" stroke="#fff" stroke-width="1.6"/>
+            <circle cx="17" cy="26.5" r="2.4" fill="#fff"/>
+            <!-- rodas -->
+            <g class="wheel"><circle cx="20" cy="45" r="10" fill="#0b2a2e" stroke="#fff" stroke-width="2.4"/><path d="M20 36v18M11 45h18" stroke="#8fffff" stroke-width="1.4"/></g>
+            <g class="wheel"><circle cx="78" cy="45" r="10" fill="#0b2a2e" stroke="#fff" stroke-width="2.4"/><path d="M78 36v18M69 45h18" stroke="#8fffff" stroke-width="1.4"/></g>
+            <!-- escape -->
+            <path d="M24 46h-9" stroke="#cfd8dc" stroke-width="3" stroke-linecap="round"/>
+            <!-- corpo da mota -->
+            <path d="M20 45 L36 33 H58 L66 40 L78 45" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M30 33 L40 22 H56 L64 30 L58 33 Z" fill="#00e5ff" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
+            <rect x="29" y="29" width="18" height="5" rx="2.5" fill="#073b41"/>
+            <path d="M66 40 L72 24 L80 22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="84" cy="25" r="3" fill="#ffd54a"/>
+            <!-- piloto -->
+            <path d="M42 28 L50 16 L60 20" fill="none" stroke="#1b3a3f" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M60 20 L74 24" fill="none" stroke="#1b3a3f" stroke-width="4" stroke-linecap="round"/>
+            <path d="M42 28 L52 38 L56 46" fill="none" stroke="#26484e" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="55" cy="9" r="6.5" fill="#fff" stroke="#0a8b92" stroke-width="1.6"/>
+            <path d="M55 6.5 H62 V11 H56 Z" fill="#073b41"/>
           </g>
         </svg>
       </div>
@@ -716,18 +736,9 @@ button{
       <div class="run-pct" id="runPct">0%</div>
     </div>
 
-    <div class="version" id="appVersion">Versão 1.7.0</div>
+    <div class="version" id="appVersion">Versão 1.8.0</div>
   </div>
 
-  <button class="install-btn" onclick="installApp()" style="display:flex;align-items:center;justify-content:center">
-       
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 3v12"/>
-    <path d="m7 10 5 5 5-5"/>
-    <path d="M5 21h14"/>
-  </svg>
-  <span style="margin-left:8px">Instalar app</span>
-</button>
 
 </section>
 
@@ -1177,7 +1188,8 @@ function normPhone(v){
   return d;
 }
 
-function goHome(){
+function goHome(tipo){
+  try{localStorage.setItem("kz_welcome",tipo||"volta");}catch(e){}
   localStorage.setItem("kz_session","1");
   location.href="home.html";
 }
@@ -1217,7 +1229,7 @@ async function doRegister(){
   catch(e){try{localStorage.setItem("kz_avatar_pending","1");}catch(_){}}
   try{localStorage.setItem("kz_avatar",JSON.stringify(fotoSel.dataUrl));}catch(_){}
   localStorage.setItem("kz_user",JSON.stringify({name,phone,avatar}));
-  goHome();
+  goHome("novo");
 }
 
 async function doLogin(){
