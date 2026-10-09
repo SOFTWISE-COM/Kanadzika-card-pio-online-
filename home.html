@@ -1355,7 +1355,28 @@ syncPending();
 markProducts();
 initChat();
 initNotif();
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",iniciarBoasVindas);else iniciarBoasVindas();
+const nomeOk=()=>{const n=String((user&&user.name)||"").trim().toLowerCase();return n.length>1&&n!=="cliente";};
+function aplicaNome(){
+  if(!user)return;
+  const h=new Date().getHours();
+  $("hello").textContent=(h<12?"Bom dia":h<18?"Boa tarde":"Boa noite")+", "+primeiroNome();
+}
+async function garantirNome(){
+  if(!user||nomeOk())return;
+  try{
+    const {data}=await sb.auth.getUser();
+    const m=data&&data.user&&data.user.user_metadata;
+    if(m&&m.name&&String(m.name).trim().toLowerCase()!=="cliente")user.name=String(m.name).trim();
+  }catch(e){}
+  if(!nomeOk()){
+    let n="";
+    try{n=(prompt("Como se chama? Escreva o seu nome para o recebermos bem.")||"").trim();}catch(e){}
+    if(n.length>1){user.name=n;try{await sb.auth.updateUser({data:{name:n}});}catch(e){}}
+  }
+  try{localStorage.setItem("kz_user",JSON.stringify(user));}catch(e){}
+}
+const iniciar=()=>garantirNome().catch(()=>{}).then(()=>{aplicaNome();iniciarBoasVindas();});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",iniciar);else iniciar();
 paintAvatar();
 reenviarFoto();
 if(user){
