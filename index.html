@@ -714,6 +714,30 @@ button{
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
+<script>
+/* Garante que os botões ficam acima da barra de navegação do telemóvel */
+(function(){
+  function fit(){
+    try{
+      var st=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+      var probe=document.createElement('div');
+      probe.style.cssText='position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden';
+      document.documentElement.appendChild(probe);
+      var env=probe.getBoundingClientRect().height||0;probe.remove();
+      var h=window.innerHeight,sh=window.screen.height;
+      var cobre=Math.abs(h-sh)<=2||Math.abs(h-window.screen.availHeight)<=2&&sh-h<2;
+      var v=env;
+      if(st){v=Math.max(env,cobre?48:24);}       /* app instalado: sobe pelo menos 24 px (48 px se o ecrã cobrir a barra) */
+      else if(env<8){v=Math.max(env,8);}          /* navegador: pequena folga */
+      document.documentElement.style.setProperty('--sab',v+'px');
+    }catch(e){}
+  }
+  fit();
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
+  window.addEventListener('load',fit);
+})();
+</script>
 </head>
 
 <body>

@@ -81,7 +81,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .delivery h4{font-size:13px}
 .delivery p{font-size:9px;color:#c6e1e3;margin-top:3px}
 
-.bottom-navigation{position:absolute;z-index:10;left:10px;right:10px;bottom:calc(10px + var(--sab));height:72px;background:rgba(6,47,53,.96);border:1px solid #18585e;border-radius:22px;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px;box-shadow:0 10px 35px rgba(0,0,0,.35)}
+.bottom-navigation{position:absolute;z-index:10;left:10px;right:10px;bottom:calc(14px + var(--sab));height:72px;background:rgba(6,47,53,.96);border:1px solid #18585e;border-radius:22px;display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px;box-shadow:0 10px 35px rgba(0,0,0,.35)}
 .nav-item{border:0;background:none;color:#759396;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:8px}
 .nav-icon-box{width:42px;height:38px;border-radius:13px;display:grid;place-items:center;position:relative}
 .nav-icon-box svg{width:25px;height:25px}
@@ -173,7 +173,43 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .trk-eta{font-size:22px;font-weight:bold;color:var(--cyan);margin-bottom:4px}
 .trk-sub{font-size:13px;color:var(--muted);line-height:1.4}
 .btn.trk{height:42px;margin-top:10px;font-size:14px}
+.product{position:relative;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.product.sel{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.35),0 6px 18px rgba(0,229,255,.18)}
+.product .selbadge{position:absolute;top:6px;left:6px;right:auto;bottom:auto;width:auto;z-index:2;min-width:26px;height:24px;padding:0 8px;border-radius:14px;background:var(--cyan);color:#00282d;font-size:12px;font-weight:bold;display:none;align-items:center;justify-content:center;gap:3px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.product.sel .selbadge{display:flex}
+.product.pop{animation:pop .45s ease}
+.product.pop .selbadge{animation:badgePop .45s ease}
+.add.pulse{animation:addPulse .45s ease}
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes badgePop{0%{transform:scale(.4)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes addPulse{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.35) rotate(90deg)}100%{transform:scale(1) rotate(0)}}
+.cart-count.bump{animation:badgePop .45s ease}
+.fly{position:fixed;z-index:100;pointer-events:none;font-size:22px;transition:transform .6s cubic-bezier(.5,-.3,.7,.4),opacity .6s}
 </style>
+<script>
+/* Garante que os botões ficam acima da barra de navegação do telemóvel */
+(function(){
+  function fit(){
+    try{
+      var st=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+      var probe=document.createElement('div');
+      probe.style.cssText='position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden';
+      document.documentElement.appendChild(probe);
+      var env=probe.getBoundingClientRect().height||0;probe.remove();
+      var h=window.innerHeight,sh=window.screen.height;
+      var cobre=Math.abs(h-sh)<=2||Math.abs(h-window.screen.availHeight)<=2&&sh-h<2;
+      var v=env;
+      if(st){v=Math.max(env,cobre?48:24);}       /* app instalado: sobe pelo menos 24 px (48 px se o ecrã cobrir a barra) */
+      else if(env<8){v=Math.max(env,8);}          /* navegador: pequena folga */
+      document.documentElement.style.setProperty('--sab',v+'px');
+    }catch(e){}
+  }
+  fit();
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
+  window.addEventListener('load',fit);
+})();
+</script>
 </head>
 
 <body>
@@ -344,8 +380,8 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg></span>Pedidos
 </button>
 
-<button class="nav-item" onclick="nav(this,'QR Code')">
-<span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2M18 14h2M14 18h2M18 18h2"/></svg></span>QR Code
+<button class="nav-item" onclick="nav(this,'Rastreio')">
+<span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/><rect x="2" y="6" width="6" height="5" rx="1"/></svg></span>Rastreio
 </button>
 
 <button class="nav-item" onclick="nav(this,'Carrinho')">
@@ -582,7 +618,6 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 const SUPABASE_URL="https://uuuibhgbwqlbylaijwuh.supabase.co";
 const SUPABASE_KEY="sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const WHATSAPP="258852353210"; /* destino dos pedidos (contacto comercial) */
 const FEE=50;
 const BAIRROS=["Matola Rio","Thandavanto","Campoane (Xidiminguana)","Belo Horizonte","Bloco 2","Mazambanine","Tedeco","Escola Secundária de Boane","Escola Secundária Joaquim Chissano","Boane (Vila)"];
 const PRODUCTS={
@@ -631,6 +666,32 @@ const total=()=>subtotal()+fee();
 function persistCart(){
   save("kz_cart",cart);
   $("cart").textContent=lines().reduce((s,l)=>s+l.q,0);
+  markProducts();
+}
+function markProducts(){
+  document.querySelectorAll(".product").forEach(p=>{
+    const b=p.querySelector(".add");if(!b)return;
+    const m=(b.getAttribute("onclick")||"").match(/'(\w+)'/);if(!m)return;
+    const q=cart[m[1]]||0;
+    p.classList.toggle("sel",q>0);
+    let bd=p.querySelector(".selbadge");
+    if(!bd){bd=document.createElement("span");bd.className="selbadge";p.appendChild(bd);}
+    bd.textContent="✓ "+q;
+  });
+}
+function animAdd(id,btn){
+  const b=btn||[...document.querySelectorAll(".product .add")].find(x=>(x.getAttribute("onclick")||"").includes("'"+id+"'"));
+  if(!b)return;
+  const card=b.closest(".product");
+  card.classList.remove("pop");b.classList.remove("pulse");void card.offsetWidth;
+  card.classList.add("pop");b.classList.add("pulse");
+  if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
+  // "+1" a voar até ao carrinho
+  const c=$("cart"),r=b.getBoundingClientRect(),t=c.getBoundingClientRect();
+  const f=document.createElement("div");f.className="fly";f.textContent="🍔";
+  f.style.left=r.left+"px";f.style.top=r.top+"px";document.body.appendChild(f);
+  requestAnimationFrame(()=>{f.style.transform=`translate(${t.left-r.left}px,${t.top-r.top}px) scale(.4)`;f.style.opacity=".2";});
+  setTimeout(()=>{f.remove();c.classList.remove("bump");void c.offsetWidth;c.classList.add("bump");},600);
 }
 
 /* ---------- sheets ---------- */
@@ -651,7 +712,7 @@ function setNav(name){
 
 /* ---------- carrinho ---------- */
 function addCart(id){
-  cart[id]=(cart[id]||0)+1;persistCart();toast(PRODUCTS[id].n+" adicionado ao carrinho");
+  cart[id]=(cart[id]||0)+1;persistCart();animAdd(id);toast(PRODUCTS[id].n+" adicionado ao carrinho");
 }
 function chg(id,d){
   cart[id]=(cart[id]||0)+d;
@@ -738,15 +799,6 @@ async function syncPending(){
 }
 
 /* ---------- envio ---------- */
-function buildMessage(o){
-  let m=`🍔 PEDIDO - KANANDZIKA 🍔\n\n📅 Data: ${fmtDate(o.ts,true)}\n${o.type==="Delivery"?"🛵 Tipo: Delivery":"🍽️ Tipo: Mesa"}\n\n👤 Cliente: ${o.name}\n📞 Tel: ${fmtPhone(o.phone)}\n`;
-  if(o.type==="Delivery"){m+=`📍 Bairro: ${o.bairro}\n`;if(o.ref)m+=`📌 Referência: ${o.ref}\n`;}
-  else m+=`🪑 Mesa: ${o.mesa}\n`;
-  m+=`\n🛒 ITENS:\n\n`+o.items.map(i=>`${i.q}x ${i.n} — ${mt(i.p)}`).join("\n")+"\n";
-  if(o.type==="Delivery")m+=`\n🚚 Taxa de entrega: ${mt(o.fee)}\n`;
-  m+=`\n💰 TOTAL: ${mt(o.total)}`;
-  return m;
-}
 function sendOrder(){
   const e=validate();
   if(e){openSheet("sh-type");showErr(e);return;}
@@ -762,12 +814,11 @@ function sendOrder(){
   const orders=load("kz_orders",[]);orders.push(o);
   save("kz_orders",orders);save("kz_counter",n);
   const pend=load("kz_pending",[]);pend.push({track_id:o.track_id,name:o.name,phone:o.phone,type:o.type,bairro:o.bairro,ref:o.ref,mesa:o.mesa,items:o.items,fee:o.fee,total:o.total});save("kz_pending",pend);syncPending();
-  const url=`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(buildMessage(o))}`;
   cart={};persistCart();
   state.type=null;state.bairro="";state.ref="";state.mesa=0;
   $("bairro").value="";$("ref").value="";setType(null);setMesa(0);
   setNav("Pedidos");openSheet("sh-orders");
-  if(!window.open(url,"_blank"))location.href=url;
+  toast("Pedido enviado ✅");
 }
 
 /* ---------- pedidos ---------- */
@@ -823,6 +874,11 @@ function nav(el,name){
   if(name==="Início")closeSheets();
   else if(name==="Pedidos")openSheet("sh-orders");
   else if(name==="Carrinho")openSheet("sh-cart");
+  else if(name==="Rastreio"){
+    const o=load("kz_orders",[]).filter(x=>x.track_id).pop();
+    if(o)openTrack(o.track_id);
+    else{toast("Faça um pedido de Delivery para acompanhar a entrega 🛵");setNav("Início");}
+  }
   else if(name==="Perfil")openSheet("sh-profile");
   else{toast(name+" em breve.");}
 }
@@ -910,6 +966,7 @@ function closeTrack(){stopTrack();closeSheets();}
 (function(){const c=closeSheets;closeSheets=function(){stopTrack();return c();};})();
 
 syncPending();
+markProducts();
 if(user){
   $("hello").textContent="Olá, "+user.name.trim().split(/\s+/)[0];
   persistCart();
