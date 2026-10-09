@@ -6,6 +6,6 @@ self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET'||!e.request.url.startsWith(self.location.origin)||e.request.url.includes('admin'))return;
   e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(hit=>{
     const net=fetch(e.request).then(r=>{if(r&&r.ok){const c=r.clone();caches.open(CACHE).then(ch=>ch.put(e.request,c));}return r;}).catch(()=>hit);
-    return hit||net;
+    return net.then(r=>r||hit).catch(()=>hit);
   }));
 });
