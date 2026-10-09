@@ -133,6 +133,26 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-90px);z-index:90;max-width:92%;background:#0a4248;border:1px solid var(--cyan);border-radius:14px;padding:12px 16px;font-size:13px;transition:transform .3s;text-align:center}
 .toast.show{transform:translate(-50%,0)}
 
+.cv{display:flex;align-items:center;gap:12px;padding:12px 4px;border-top:1px solid var(--line);cursor:pointer;border-radius:10px}
+.cv:first-of-type{border-top:0}
+.cv:active,.cv:hover{background:rgba(0,229,255,.07)}
+.cv .inf em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv .dot{flex:none}
+.thead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.thead .inf strong{font-size:15px}
+.tbody{height:min(52vh,460px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:rgba(0,20,22,.35);border:1px solid var(--line);border-radius:14px;scrollbar-width:thin}
+.bub{max-width:82%;padding:9px 12px;border-radius:16px;font-size:14px;line-height:1.4;word-break:break-word;white-space:pre-wrap}
+.bub small{display:block;font-size:10px;opacity:.65;margin-top:4px;text-align:right}
+.bub.c{align-self:flex-start;background:#0d4f56;border:1px solid var(--line);border-bottom-left-radius:5px}
+.bub.s{align-self:flex-end;background:var(--cyan);color:#00282d;border-bottom-right-radius:5px}
+.bub.a{align-self:flex-end;background:transparent;border:1px dashed #1d5960;color:var(--muted);font-style:italic;border-bottom-right-radius:5px}
+.qr{display:flex;gap:6px;overflow-x:auto;margin:10px 0;scrollbar-width:none}
+.qr::-webkit-scrollbar{display:none}
+.qr button{flex:none;border:1px solid var(--line);background:var(--card);color:#d7ebed;border-radius:16px;padding:7px 12px;font-size:12px}
+.sendbar{display:flex;gap:8px;align-items:flex-end}
+.sendbar textarea{flex:1;min-height:46px;max-height:120px;border:1.5px solid var(--cyan);border-radius:14px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none}
+.sendbar button{width:46px;height:46px;border:0;border-radius:50%;background:var(--cyan);color:#00282d;display:grid;place-items:center;flex:none}
+.sendbar button:disabled{opacity:.5}
 /* mapa de entrega (rastreio) */
 #ent{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
 #ent .eh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
@@ -201,6 +221,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
     <button class="tab on" data-t="home"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Visão geral</button>
     <button class="tab" data-t="users"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6"/></svg>Utilizadores<span class="dot hidden" id="dU"></span></button>
     <button class="tab" data-t="orders"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Pedidos<span class="dot hidden" id="dO"></span></button>
+    <button class="tab" data-t="chat"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Chat<span class="dot hidden" id="dC"></span></button>
     <button class="tab" data-t="fb"><svg class="i" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Feedback<span class="dot hidden" id="dF"></span></button>
   </div>
   <div id="status"></div>
@@ -281,6 +302,25 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
     </div>
   </div>
 
+  <!-- CHAT -->
+  <div id="v-chat" class="hidden">
+    <div class="card" id="chList">
+      <div class="tools"><input id="qC" placeholder="Procurar conversa por nome ou número" oninput="renderChats()"></div>
+      <div class="sum" id="sumC"></div>
+      <div id="convs"></div>
+    </div>
+    <div class="card hidden" id="chThread">
+      <div class="thead">
+        <button class="ib" onclick="fecharConversa()" title="Voltar"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="inf"><strong id="thName">Cliente</strong><em id="thPhone"></em></div>
+        <div class="ra"><a class="ib" id="thWa" target="_blank" rel="noopener" title="WhatsApp"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg></a><a class="ib" id="thTel" title="Ligar"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></a></div>
+      </div>
+      <div class="tbody" id="thBody"></div>
+      <div class="qr" id="qr"></div>
+      <div class="sendbar"><textarea id="thIn" rows="1" maxlength="1000" placeholder="Escreva a resposta ao cliente"></textarea><button id="thSend" onclick="enviarResposta()" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button></div>
+    </div>
+  </div>
+
   <!-- FEEDBACK -->
   <div id="v-fb" class="hidden">
     <div class="grid2">
@@ -323,9 +363,9 @@ const pad=n=>String(n).padStart(2,'0');
 const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mt=n=>(Math.round(Number(n)||0)).toLocaleString('pt-PT')+' MT';
 const num=n=>(Number(n)||0).toLocaleString('pt-PT');
-let users=[],orders=[],fbs=[],tab='home',gran={u:'d',r:'d',o:'d'};
+let users=[],orders=[],fbs=[],chats=[],tab='home',gran={u:'d',r:'d',o:'d'},openC=null;
 let known=null;            // ids já vistos (para avisar de novidades)
-let seen={u:0,o:0,f:0};    // novidades por ver em cada separador
+let seen={u:0,o:0,f:0,c:0};    // novidades por ver em cada separador
 
 function normPhone(v){let d=String(v||'').replace(/\D/g,'');if(d.startsWith('258')&&d.length>9)d=d.slice(3);return d;}
 function fmtPhone(p){const d=normPhone(p);return d.length===9?'+258 '+d.slice(0,2)+' '+d.slice(2,5)+' '+d.slice(5):(p||'');}
@@ -375,13 +415,14 @@ async function doLogin(){
   $('pass').value='';
   await enter(data.session);
 }
-async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];known=null;showLogin();}
+async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];chats=[];known=null;openC=null;showLogin();}
 
 /* ---------- separadores ---------- */
 function setTab(t){
   tab=t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  ['home','users','orders','fb'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
+  ['home','users','orders','chat','fb'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
+  if(t==='chat'){seen.c=0;setDot('dC',0);renderChats();}
   if(t==='users'){seen.u=0;setDot('dU',0);}
   if(t==='orders'){seen.o=0;setDot('dO',0);}
   if(t==='fb'){seen.f=0;setDot('dF',0);}
@@ -413,12 +454,13 @@ async function load(silent){
   loading=true;
   if(!silent)$('status').textContent='A carregar...';
   const errs=[];
-  const [u,o,f]=await Promise.all([
+  const [u,o,f,c]=await Promise.all([
     fetchAll('profiles','created_at','name,phone,created_at').catch(e=>{errs.push(e.message);return null;}),
     fetchAll('orders','created_at').catch(e=>{errs.push(e.message);return null;}),
-    fetchAll('feedback','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'feedback: falta correr o painel.sql no Supabase':e.message);return null;})
+    fetchAll('feedback','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'feedback: falta correr o painel.sql no Supabase':e.message);return null;}),
+    fetchAll('chat_messages','created_at').catch(e=>{errs.push(/relation|does not exist|schema cache/i.test(e.message)?'chat: falta correr o chat.sql no Supabase':e.message);return null;})
   ]);
-  const nu=u?u.filter(r=>r.phone):users, no=o||orders, nf=f||fbs;
+  const nu=u?u.filter(r=>r.phone):users, no=o||orders, nf=f||fbs, nc=c||chats;
   // novidades desde a última leitura
   if(known){
     const nU=nu.filter(r=>!known.u.has(r.phone)).length;
@@ -427,17 +469,19 @@ async function load(silent){
     if(nU){const x=nu.find(r=>!known.u.has(r.phone));notify(nU===1?'Novo cadastro: '+(x.name||'Cliente')+' ('+fmtPhone(x.phone)+')':nU+' novos cadastros');seen.u+=tab==='users'?0:nU;}
     if(nO){const x=no.find(r=>!known.o.has(r.id));notify(nO===1?'Novo pedido #'+x.id+' · '+mt(x.total):nO+' novos pedidos');seen.o+=tab==='orders'?0:nO;}
     if(nF){const x=nf.find(r=>!known.f.has(r.id));notify('Novo feedback: '+x.rating+' de 5 estrelas'+(x.name?' ('+x.name+')':''));seen.f+=tab==='fb'?0:nF;}
-    setDot('dU',seen.u);setDot('dO',seen.o);setDot('dF',seen.f);
+    const novasC=nc.filter(r=>!known.c.has(r.id)&&r.sender==='cliente');
+    if(novasC.length){const x=novasC[0];notify('Nova mensagem de '+(x.name||'cliente')+': '+x.message.slice(0,60));if(!(tab==='chat'&&openC&&novasC.every(r=>r.user_id===openC)))seen.c+=novasC.length;}
+    setDot('dU',seen.u);setDot('dO',seen.o);setDot('dF',seen.f);setDot('dC',seen.c);
   }
-  users=nu;orders=no;fbs=nf;
-  known={u:new Set(users.map(r=>r.phone)),o:new Set(orders.map(r=>r.id)),f:new Set(fbs.map(r=>r.id))};
+  users=nu;orders=no;fbs=nf;chats=nc;
+  known={u:new Set(users.map(r=>r.phone)),o:new Set(orders.map(r=>r.id)),f:new Set(fbs.map(r=>r.id)),c:new Set(chats.map(r=>r.id))};
   $('status').textContent=errs.length?'Erro ao carregar: '+errs.join(' | '):'';
   const n=new Date();$('updated').textContent='Atualizado às '+pad(n.getHours())+':'+pad(n.getMinutes())+' · em tempo real';
   renderAll();
   loading=false;
   if(again){again=false;load(true);}
 }
-function renderAll(){renderKpis();drawCharts();renderLists();renderUsers();renderOrders();renderFeedback();}
+function renderAll(){renderKpis();drawCharts();renderLists();renderUsers();renderOrders();renderFeedback();renderChats();if(openC)renderThread(false);}
 
 /* ---------- números ---------- */
 const sumBetween=(list,fn,a,b)=>list.reduce((s,r)=>{const d=new Date(r.created_at);return d>=a&&d<b?s+fn(r):s;},0);
@@ -603,6 +647,68 @@ async function apagarFeedbackTodos(){
   toast(num((data||[]).length)+' opiniões apagadas.');load(true);
 }
 
+/* ---------- chat com os clientes ---------- */
+function conversas(){
+  const m=new Map();
+  chats.forEach(r=>{
+    let c=m.get(r.user_id);
+    if(!c){c={id:r.user_id,name:'',phone:'',last:null,unread:0,msgs:[]};m.set(r.user_id,c);}
+    c.msgs.push(r);
+    if(r.sender==='cliente'){if(r.name)c.name=r.name;if(r.phone)c.phone=r.phone;if(!r.lida_admin)c.unread++;}
+    if(!c.last||new Date(r.created_at)>new Date(c.last.created_at))c.last=r;
+  });
+  m.forEach(c=>{c.msgs.sort((a,b)=>a.id-b.id);if(!c.name)c.name='Cliente';});
+  return [...m.values()].sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+}
+function renderChats(){
+  const q=($('qC').value||'').trim().toLowerCase();
+  const L=conversas().filter(c=>!q||c.name.toLowerCase().includes(q)||String(c.phone).includes(q));
+  const nao=conversas().reduce((s,c)=>s+(c.unread?1:0),0);
+  $('sumC').innerHTML='<b>'+num(L.length)+'</b> conversas'+(nao?' · <span style="color:var(--bad)">'+nao+' por responder</span>':'');
+  $('convs').innerHTML=L.length?L.map(c=>{
+    const l=c.last,quem=l.sender==='cliente'?'':'Você: ';
+    return '<div class="cv" onclick="abrirConversa(\''+esc(c.id)+'\')"><div class="av">'+ini(c.name)+'</div><div class="inf"><strong>'+esc(c.name)+'</strong><em>'+quem+esc(l.message)+'</em></div><div class="dt">'+esc(fmtDate(l.created_at).slice(0,16))+'</div>'+(c.unread?'<span class="dot">'+c.unread+'</span>':'')+'</div>';
+  }).join(''):'<div class="empty">'+(chats.length?'Nenhum resultado.':'Ainda não há conversas. Quando um cliente escrever pelo botão Chat do app, aparece aqui.')+'</div>';
+}
+const RESP=['Olá! Já estamos a tratar do seu pedido.','O seu pedido já está a caminho.','Pode enviar a sua localização, por favor?','Obrigado pela preferência!'];
+async function abrirConversa(id){
+  openC=id;$('chList').classList.add('hidden');$('chThread').classList.remove('hidden');
+  $('qr').innerHTML=RESP.map((t,i)=>'<button onclick="usarResposta('+i+')">'+esc(t)+'</button>').join('');
+  renderThread(true);
+  // marcar como lidas
+  const c=conversas().find(x=>x.id===id);
+  if(c&&c.unread){
+    chats.forEach(r=>{if(r.user_id===id&&r.sender==='cliente')r.lida_admin=true;});
+    sb.from('chat_messages').update({lida_admin:true}).eq('user_id',id).eq('sender','cliente').eq('lida_admin',false).then(()=>{});
+    renderChats();
+  }
+}
+function fecharConversa(){openC=null;$('chThread').classList.add('hidden');$('chList').classList.remove('hidden');renderChats();}
+function usarResposta(i){const t=$('thIn');t.value=RESP[i];t.focus();}
+function renderThread(descer){
+  const c=conversas().find(x=>x.id===openC);
+  if(!c){$('thBody').innerHTML='<div class="empty">Conversa não encontrada.</div>';return;}
+  const ph=normPhone(c.phone);
+  $('thName').textContent=c.name;$('thPhone').textContent=fmtPhone(c.phone);
+  $('thWa').href='https://wa.me/258'+ph;$('thTel').href='tel:+258'+ph;
+  const el=$('thBody'),perto=el.scrollHeight-el.scrollTop-el.clientHeight<120;
+  el.innerHTML=c.msgs.map(m=>'<div class="bub '+(m.sender==='cliente'?'c':m.sender==='auto'?'a':'s')+'">'+esc(m.message)+'<small>'+(m.sender==='auto'?'resposta automática · ':'')+esc(fmtDate(m.created_at).slice(11))+'</small></div>').join('');
+  if(descer||perto)el.scrollTop=el.scrollHeight;
+}
+async function enviarResposta(){
+  const t=$('thIn').value.trim();if(!t||!openC)return;
+  const c=conversas().find(x=>x.id===openC);
+  const b=$('thSend');b.disabled=true;
+  const {data,error}=await sb.from('chat_messages').insert({user_id:openC,sender:'suporte',name:'Suporte Kanandzika',phone:c?c.phone:null,message:t,lida_admin:true}).select('*').single();
+  b.disabled=false;
+  if(error)return toast('Não foi possível enviar: '+error.message);
+  $('thIn').value='';$('thIn').style.height='';
+  if(data&&!chats.some(r=>r.id===data.id)){chats.unshift(data);known&&known.c.add(data.id);}
+  renderThread(true);renderChats();
+}
+$('thIn').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+$('thIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&innerWidth>700){e.preventDefault();enviarResposta();}});
+
 /* ---------- exportar ---------- */
 function exportCsv(which){
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
@@ -644,6 +750,7 @@ function startRealtime(){
       .on('postgres_changes',{event:'*',schema:'public',table:'profiles'},go)
       .on('postgres_changes',{event:'*',schema:'public',table:'orders'},go)
       .on('postgres_changes',{event:'*',schema:'public',table:'feedback'},go)
+      .on('postgres_changes',{event:'*',schema:'public',table:'chat_messages'},go)
       .subscribe();
   }catch(e){}
 }

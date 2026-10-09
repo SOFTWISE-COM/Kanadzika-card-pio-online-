@@ -198,6 +198,24 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .fb-stars button.on{color:#ffc542;transform:scale(1.08)}
 .fb-stars svg{width:38px;height:38px;fill:currentColor}
 .fb-text{width:100%;min-height:110px;border:1.5px solid var(--cyan);border-radius:14px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none;margin-bottom:12px}
+.actions .quick .mini.call.chat{width:52px;height:52px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #1d5960;background:#0a4248;color:var(--cyan);padding:0}
+.actions .quick .mini.call.chat svg{width:25px;height:25px}
+.actions .quick .mini.call.chat::after{content:"Chat";position:absolute;top:56px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:currentColor}
+.chat-badge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;border-radius:10px;background:#ff4357;color:#fff;font-size:11px;font-weight:bold;display:none;place-items:center;padding:0 5px;border:2px solid var(--bg)}
+.chat-badge.on{display:grid}
+.chat-body{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.msg{max-width:82%;padding:9px 12px;border-radius:16px;font-size:14px;line-height:1.4;word-break:break-word;white-space:pre-wrap}
+.msg small{display:block;font-size:10px;opacity:.65;margin-top:4px;text-align:right}
+.msg.me{align-self:flex-end;background:var(--cyan);color:#00282d;border-bottom-right-radius:5px}
+.msg.sup{align-self:flex-start;background:#0a4248;border:1px solid #15575e;border-bottom-left-radius:5px}
+.msg.sup b{display:block;font-size:11px;color:var(--cyan);margin-bottom:2px}
+.msg.auto{opacity:.85;font-style:italic}
+.chat-empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;padding:20px}
+.chat-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + var(--sab));border-top:1px solid #15575e;background:var(--bg)}
+.chat-bar textarea{flex:1;min-height:46px;max-height:110px;border:1.5px solid var(--cyan);border-radius:16px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none}
+.chat-bar button{width:46px;height:46px;border:0;border-radius:50%;background:var(--cyan);color:#00282d;display:grid;place-items:center;flex:none}
+.chat-bar button:disabled{opacity:.5}
+.chat-bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -280,6 +298,13 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
 </svg>
 </a>
+
+</div>
+<div class="quick">
+<button class="mini call chat" id="chatBtn" onclick="openChat()" aria-label="Falar com o suporte">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg>
+<span class="chat-badge" id="chatBadge">0</span>
+</button>
 
 </div>
 </header>
@@ -520,6 +545,18 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
     <div class="fb-stars" id="fbStars"></div>
     <textarea class="fb-text" id="fbText" maxlength="500" placeholder="Escreva aqui o seu comentário (opcional)"></textarea>
     <button class="btn" id="fbSend" onclick="sendFeedback()">Enviar feedback</button>
+  </div>
+</div>
+
+<div class="sheet" id="sh-chat">
+  <div class="sh-head">
+    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <h2>Suporte Kanandzika</h2>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-bar">
+    <textarea id="chatIn" rows="1" maxlength="1000" placeholder="Escreva a sua mensagem"></textarea>
+    <button id="chatSend" onclick="sendChat()" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button>
   </div>
 </div>
 
@@ -1039,8 +1076,78 @@ async function sendFeedback(){
   closeSheets();toast("Obrigado pelo seu feedback!");
 }
 
+/* ---------- chat com o suporte ---------- */
+let chat={msgs:[],ch:null,uid:null,poll:null};
+const chatSeen=()=>Number(load("kz_chat_seen",0))||0;
+const chatOpen=()=>$("sh-chat").classList.contains("open");
+function chatBadge(){
+  const n=chat.msgs.filter(m=>m.sender!=="cliente"&&m.id>chatSeen()).length;
+  const b=$("chatBadge");b.textContent=n>9?"9+":n;b.classList.toggle("on",n>0);
+}
+function hhmm(s){const d=new Date(s);return pad(d.getHours())+":"+pad(d.getMinutes());}
+function paintChat(){
+  const el=$("chatBody"),perto=el.scrollHeight-el.scrollTop-el.clientHeight<120;
+  el.innerHTML=chat.msgs.length?chat.msgs.map(m=>`<div class="msg ${m.sender==="cliente"?"me":"sup"} ${m.sender==="auto"?"auto":""}">${m.sender!=="cliente"?"<b>Suporte Kanandzika</b>":""}${esc(m.message)}<small>${hhmm(m.created_at)}</small></div>`).join(""):'<div class="chat-empty"><b>Olá! Como podemos ajudar?</b><br>Escreva a sua mensagem e a nossa equipa responde por aqui.</div>';
+  if(perto||!el.dataset.ok){el.scrollTop=el.scrollHeight;el.dataset.ok="1";}
+}
+function addMsg(m){
+  if(!m||chat.msgs.some(x=>x.id===m.id))return false;
+  chat.msgs.push(m);chat.msgs.sort((a,b)=>a.id-b.id);return true;
+}
+async function fetchChat(){
+  const {data,error}=await sb.from("chat_messages").select("id,sender,message,created_at").order("id",{ascending:true}).limit(300);
+  if(error)return false;
+  (data||[]).forEach(addMsg);return true;
+}
+async function initChat(){
+  try{
+    const {data}=await sb.auth.getSession();
+    const s=data&&data.session;if(!s)return;
+    chat.uid=s.user.id;
+    await fetchChat();chatBadge();
+    chat.ch=sb.channel("chat-"+chat.uid)
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages",filter:"user_id=eq."+chat.uid},p=>{
+        const m=p.new;if(!addMsg(m))return;
+        if(m.sender!=="cliente"){
+          if(chatOpen()){save("kz_chat_seen",m.id);}
+          else toast("Nova mensagem do suporte");
+        }
+        chatBadge();if(chatOpen())paintChat();
+      }).subscribe();
+    // segurança: consulta de 8 em 8 s se o tempo real falhar
+    chat.poll=setInterval(async()=>{
+      if(document.hidden)return;
+      const antes=chat.msgs.length;await fetchChat();
+      if(chat.msgs.length!==antes){if(chatOpen()){const u=chat.msgs[chat.msgs.length-1];if(u.sender!=="cliente")save("kz_chat_seen",u.id);paintChat();}chatBadge();}
+    },8000);
+  }catch(e){}
+}
+async function openChat(){
+  openSheet("sh-chat");
+  $("chatBody").dataset.ok="";
+  await fetchChat();
+  const last=chat.msgs[chat.msgs.length-1];if(last)save("kz_chat_seen",Math.max(chatSeen(),last.id));
+  chatBadge();paintChat();
+  setTimeout(()=>$("chatIn").focus(),350);
+}
+async function sendChat(){
+  const t=$("chatIn").value.trim();if(!t)return;
+  if(!chat.uid){const {data}=await sb.auth.getSession();if(data&&data.session)chat.uid=data.session.user.id;}
+  const b=$("chatSend");b.disabled=true;
+  const {data,error}=await sb.from("chat_messages").insert({sender:"cliente",name:user.name,phone:user.phone,message:t.slice(0,1000)}).select("id,sender,message,created_at").single();
+  b.disabled=false;
+  if(error)return toast("Não foi possível enviar. Tente mais tarde.");
+  $("chatIn").value="";$("chatIn").style.height="";
+  addMsg(data);paintChat();$("chatBody").scrollTop=$("chatBody").scrollHeight;
+  // a resposta automática chega em instantes
+  setTimeout(async()=>{await fetchChat();const u=chat.msgs[chat.msgs.length-1];if(u&&u.sender!=="cliente"&&chatOpen())save("kz_chat_seen",u.id);chatBadge();if(chatOpen())paintChat();},1200);
+}
+$("chatIn").addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,110)+"px";});
+$("chatIn").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&innerWidth>700){e.preventDefault();sendChat();}});
+
 syncPending();
 markProducts();
+initChat();
 paintAvatar();
 reenviarFoto();
 if(user){
