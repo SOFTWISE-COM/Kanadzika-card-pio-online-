@@ -250,6 +250,14 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 #ntBanner span{display:block;font-size:13px;line-height:1.4;color:#41585c;max-height:2.8em;overflow:hidden;white-space:pre-line}
 #ntBanner small{margin-left:auto;font-size:11px;color:#6f8488;flex:none}
 .trk-chip{position:absolute;top:72px;left:50%;transform:translateX(-50%);z-index:1100;background:#fff;color:#0b2a2e;border-radius:18px;padding:8px 16px;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.4);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.okAnim{display:flex;align-items:center;gap:10px}
+.okAnim svg{width:44px;height:44px;flex:none}
+.okAnim circle{fill:none;stroke:#22c55e;stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;transform-origin:center;animation:okC .5s ease-out forwards}
+.okAnim path{fill:none;stroke:#22c55e;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:okP .35s .45s ease-out forwards}
+.okAnim svg{animation:okPop .3s .8s ease-out}
+@keyframes okC{to{stroke-dashoffset:0}}
+@keyframes okP{to{stroke-dashoffset:0}}
+@keyframes okPop{50%{transform:scale(1.15)}}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -751,7 +759,7 @@ function setType(t){
 }
 function renderLoc(){
   const st=state.locSt,el=$("locBox");if(!el)return;
-  if(state.loc)el.innerHTML=`<b>${Ico("pin")}Localização ativada</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">O entregador vai até ao ponto onde está agora. Confirme que está no local da entrega. Já pode prosseguir com o pedido.</div><button class="btn alt" onclick="pedirLoc()">Ativar minha localização</button>`;
+  if(state.loc)el.innerHTML=`<div class="okAnim"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l8 8 14-16"/></svg><b>Localização ativada</b></div><div class="muted" style="margin:6px 0 10px;line-height:1.45">O entregador vai até ao ponto onde está agora. Confirme que está no local da entrega. Já pode prosseguir com o pedido.</div><button class="btn alt" onclick="pedirLoc()">Ativar minha localização</button>`;
   else if(st==="busy")el.innerHTML=`<b>${Ico("pin")}A obter a sua localização…</b><div class="muted" style="margin-top:6px">Permita o acesso à localização quando o telemóvel perguntar.</div>`;
   else el.innerHTML=`<b>${Ico("pin")}Localização da entrega</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">${st==="erro"?"Não foi possível obter a localização. Ative a localização do telemóvel e tente de novo.":"Usamos o mapa para chegar até si, sem escolher bairro."}</div><button class="btn" onclick="pedirLoc()">Ativar minha localização</button>`;
 }
