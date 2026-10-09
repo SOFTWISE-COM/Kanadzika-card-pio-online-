@@ -1237,7 +1237,7 @@ async function doLogin(){
   const pass=$v("loginPassword");
   const {data,error}=await sb.auth.signInWithPassword({email:phoneEmail(phone),password:pass});
   if(error)return toast("Número ou senha incorretos.");
-  const name=(data.user.user_metadata&&data.user.user_metadata.name)||"Cliente";
+  const _m=data.user.user_metadata||{};const name=_m.name||_m.nome||_m.full_name||"Cliente";
   const avatar=(data.user.user_metadata&&data.user.user_metadata.avatar_url)||"";
   try{if(!avatar)localStorage.removeItem("kz_avatar");}catch(_){}
   localStorage.setItem("kz_user",JSON.stringify({name,phone,avatar}));

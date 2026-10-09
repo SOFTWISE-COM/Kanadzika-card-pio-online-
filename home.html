@@ -1356,6 +1356,7 @@ markProducts();
 initChat();
 initNotif();
 const nomeOk=()=>{const n=String((user&&user.name)||"").trim().toLowerCase();return n.length>1&&n!=="cliente";};
+const nomeDe=o=>{if(!o)return"";for(const k of["name","nome","full_name","fullName","registerName"]){const v=o[k];if(v&&String(v).trim().length>1&&String(v).trim().toLowerCase()!=="cliente")return String(v).trim();}return"";};
 function aplicaNome(){
   if(!user)return;
   const h=new Date().getHours();
@@ -1363,17 +1364,10 @@ function aplicaNome(){
 }
 async function garantirNome(){
   if(!user||nomeOk())return;
-  try{
-    const {data}=await sb.auth.getUser();
-    const m=data&&data.user&&data.user.user_metadata;
-    if(m&&m.name&&String(m.name).trim().toLowerCase()!=="cliente")user.name=String(m.name).trim();
-  }catch(e){}
-  if(!nomeOk()){
-    let n="";
-    try{n=(prompt("Como se chama? Escreva o seu nome para o recebermos bem.")||"").trim();}catch(e){}
-    if(n.length>1){user.name=n;try{await sb.auth.updateUser({data:{name:n}});}catch(e){}}
-  }
-  try{localStorage.setItem("kz_user",JSON.stringify(user));}catch(e){}
+  let n=nomeDe(user);
+  if(!n){try{const {data}=await sb.auth.getUser();n=nomeDe(data&&data.user&&data.user.user_metadata);}catch(e){}}
+  if(!n){try{const {data}=await sb.auth.getSession();n=nomeDe(data&&data.session&&data.session.user&&data.session.user.user_metadata);}catch(e){}}
+  if(n){user.name=n;try{localStorage.setItem("kz_user",JSON.stringify(user));}catch(e){}}
 }
 const iniciar=()=>garantirNome().catch(()=>{}).then(()=>{aplicaNome();iniciarBoasVindas();});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",iniciar);else iniciar();
