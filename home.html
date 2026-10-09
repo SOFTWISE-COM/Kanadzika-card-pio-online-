@@ -6,7 +6,7 @@
 <title>Kanandzika Lanchonete Premium</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="assets/icon-192.png">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="icones.js"></script>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#003f43">
 <meta name="mobile-web-app-capable" content="yes">
@@ -74,7 +74,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .product-info{padding:9px}
 .product h4{font-size:11px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .price{color:var(--cyan);font-size:11px;font-weight:bold}
-.add{float:right;width:25px;height:25px;border:0;border-radius:8px;background:var(--cyan);color:#00282d;font-size:18px;font-weight:bold}
+.add{float:right;position:relative;height:26px;padding:0 9px;border:0;border-radius:9px;background:var(--cyan);color:#00282d;font-size:11px;font-weight:bold;display:inline-flex;align-items:center;gap:3px}.add svg.ico{width:13px;height:13px;margin:0}
 
 .delivery{margin-top:18px;padding:15px;border-radius:17px;background:linear-gradient(135deg,#08727b,#0a4248);display:flex;align-items:center;gap:12px}
 .delivery svg{width:28px;min-width:28px}
@@ -106,10 +106,10 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .sheet.open{transform:none;visibility:visible}
 .sh-head{display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 14px 10px}
 .sh-head h2{font-size:18px}
-.sh-back{width:40px;height:40px;border-radius:13px;border:1px solid #1d5960;background:#0a4248;color:#fff;font-size:22px}
+.sh-back{height:40px;min-width:40px;padding:0 12px 0 8px;border-radius:13px;border:1px solid #1d5960;background:#0a4248;color:#fff;font-size:13px;font-weight:bold;display:inline-flex;align-items:center;gap:2px}.sh-back svg{width:20px;height:20px;margin:0}
 .sh-body{flex:1;overflow-y:auto;padding:6px 14px 16px;scrollbar-width:none}
 .sh-foot{padding:10px 14px calc(14px + var(--sab));border-top:1px solid #15575e;background:var(--bg)}
-.btn{width:100%;height:52px;border:0;border-radius:16px;background:var(--cyan);color:#00282d;font-size:16px;font-weight:bold}
+.btn{width:100%;height:52px;border:0;border-radius:16px;background:var(--cyan);color:#00282d;font-size:16px;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:8px}.btn svg.ico{margin:0;width:20px;height:20px}
 .btn.alt{background:#0a4248;color:#fff;border:1px solid var(--cyan);margin-bottom:8px;height:46px}
 .card{background:#0a4248;border:1px solid #15575e;border-radius:16px;padding:13px;margin-bottom:10px}
 .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:5px 0}
@@ -123,9 +123,9 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .stepper button{width:28px;height:28px;border-radius:9px;border:1px solid var(--cyan);background:none;color:var(--cyan);font-size:17px;font-weight:bold}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .opt{border:1.5px solid #17565c;background:#0a4248;border-radius:18px;padding:18px 8px;color:#fff;font-size:15px;font-weight:bold;text-align:center}
-.opt span{display:block;font-size:30px;margin-bottom:6px}
+.opt span{display:block;font-size:30px;margin-bottom:6px}.opt span svg.ico{width:1em;height:1em;margin:0}
 .opt.sel{border-color:var(--cyan);background:rgba(0,229,255,.13);color:var(--cyan)}
-.lbl{font-size:13px;font-weight:bold;margin:12px 0 6px;display:block}
+.lbl{font-size:13px;font-weight:bold;margin:12px 0 6px;display:flex;align-items:center}.row span svg.ico,.card b svg.ico,.muted svg.ico{width:1em;height:1em}.row span:first-child{display:inline-flex;align-items:center}.empty svg.ico{width:44px;height:44px;margin:0 0 6px;opacity:.7}
 .inp{width:100%;height:48px;border:1.5px solid var(--cyan);border-radius:14px;background:rgba(0,20,22,.3);color:#fff;padding:0 12px;font-size:14px;outline:0}
 .inp option{background:#0a4248}
 .mesas{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
@@ -152,7 +152,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 }
 
 .add.selected::after{
-  content:"✓";
+  content:"";background:var(--cyan) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300282d' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/16px no-repeat;border-radius:inherit;
   position:absolute;
   inset:0;
   display:flex;
@@ -192,7 +192,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .avatar-big{width:96px;height:96px;border-radius:50%;margin:6px auto 4px;border:3px solid var(--cyan);background:#0a4248;overflow:hidden;display:grid;place-items:center}
 .avatar-big img{width:100%;height:100%;object-fit:cover}
 .avatar-big svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:1.8}
-.foto-link{display:block;margin:0 auto 14px;background:none;border:0;color:var(--cyan);font-size:13px;font-weight:bold}
+.foto-link{display:flex;align-items:center;justify-content:center;margin:0 auto 14px;background:none;border:0;color:var(--cyan);font-size:13px;font-weight:bold}
 .fb-stars{display:flex;justify-content:center;gap:6px;margin:6px 0 14px}
 .fb-stars button{background:none;border:0;padding:4px;color:#3b6a70;transition:transform .15s,color .15s}
 .fb-stars button.on{color:#ffc542;transform:scale(1.08)}
@@ -213,7 +213,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .chat-empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;padding:20px}
 .chat-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(14px + var(--sab));border-top:1px solid #15575e;background:var(--bg)}
 .chat-bar textarea{flex:1;min-height:46px;max-height:110px;border:1.5px solid var(--cyan);border-radius:16px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none}
-.chat-bar button{width:46px;height:46px;border:0;border-radius:50%;background:var(--cyan);color:#00282d;display:grid;place-items:center;flex:none}
+.chat-bar button{height:46px;padding:0 16px;border:0;border-radius:23px;background:var(--cyan);color:#00282d;display:flex;align-items:center;gap:6px;font-weight:bold;font-size:14px;flex:none}
 .chat-bar button:disabled{opacity:.5}
 .kb .chat-bar{padding-bottom:10px}
 .chat-bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -372,39 +372,39 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <div class="products" id="products">
 <article class="product" data-name="Hambúrguer simples">
 <img src="assets/ss.png" alt="">
-<div class="product-info"><h4>Hambúrguer simples</h4><span class="price">120 MT</span><button class="add" onclick="addCart('hs')">+</button></div>
+<div class="product-info"><h4>Hambúrguer simples</h4><span class="price">120 MT</span><button class="add" onclick="addCart('hs')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Hambúrguer completo">
 <img src="assets/hb.png" alt="">
-<div class="product-info"><h4>Hambúrguer completo</h4><span class="price">180 MT</span><button class="add" onclick="addCart('hc')">+</button></div>
+<div class="product-info"><h4>Hambúrguer completo</h4><span class="price">180 MT</span><button class="add" onclick="addCart('hc')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Hambúrguer duplo">
 <img src="assets/intro2.png" alt="">
-<div class="product-info"><h4>Hambúrguer duplo</h4><span class="price">250 MT</span><button class="add" onclick="addCart('hd')">+</button></div>
+<div class="product-info"><h4>Hambúrguer duplo</h4><span class="price">250 MT</span><button class="add" onclick="addCart('hd')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Sandes de ovo">
 <img src="assets/v.png" alt="">
-<div class="product-info"><h4>Sandes de ovo</h4><span class="price">50 MT</span><button class="add" onclick="addCart('so')">+</button></div>
+<div class="product-info"><h4>Sandes de ovo</h4><span class="price">50 MT</span><button class="add" onclick="addCart('so')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Sandes de palone">
 <img src="assets/p.png" alt="">
-<div class="product-info"><h4>Sandes de palone</h4><span class="price">50 MT</span><button class="add" onclick="addCart('sp')">+</button></div>
+<div class="product-info"><h4>Sandes de palone</h4><span class="price">50 MT</span><button class="add" onclick="addCart('sp')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Sandes de racahel">
 <img src="assets/rc.png" alt="">
-<div class="product-info"><h4>Sandes de racahel</h4><span class="price">75 MT</span><button class="add" onclick="addCart('sr')">+</button></div>
+<div class="product-info"><h4>Sandes de racahel</h4><span class="price">75 MT</span><button class="add" onclick="addCart('sr')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Sandes completa">
 <img src="assets/sc.png" alt="">
-<div class="product-info"><h4>Sandes completa</h4><span class="price">150 MT</span><button class="add" onclick="addCart('sc')">+</button></div>
+<div class="product-info"><h4>Sandes completa</h4><span class="price">150 MT</span><button class="add" onclick="addCart('sc')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Dose de batata">
 <img src="assets/b.png" alt="">
-<div class="product-info"><h4>Dose de batata</h4><span class="price">70 MT</span><button class="add" onclick="addCart('bt')">+</button></div>
+<div class="product-info"><h4>Dose de batata</h4><span class="price">70 MT</span><button class="add" onclick="addCart('bt')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 <article class="product" data-name="Refresco">
 <img src="assets/r.png" alt="">
-<div class="product-info"><h4>Refresco</h4><span class="price">25 MT</span><button class="add" onclick="addCart('rf')">+</button></div>
+<div class="product-info"><h4>Refresco</h4><span class="price">25 MT</span><button class="add" onclick="addCart('rf')"><svg class="ico"><use href="#i-carrinho"/></svg>Add</button></div>
 </article>
 </div>
 
@@ -428,7 +428,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 </button>
 
 <button class="nav-item" onclick="nav(this,'Rastreio')">
-<span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/><rect x="2" y="6" width="6" height="5" rx="1"/></svg></span>Rastreio
+<span class="nav-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-entrega"/></svg></span>Rastreio
 </button>
 
 <button class="nav-item" onclick="nav(this,'Carrinho')">
@@ -443,43 +443,43 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 </button>
 </nav>
 
-<div class="sheet" id="sh-cart"><div class="sh-head"><button class="sh-back" onclick="closeSheets()"><i class="fas fa-arrow-left"></i></button><h2>Meu carrinho</h2></div><div class="sh-body" id="cartBody"></div><div class="sh-foot" id="cartFoot"></div></div>
+<div class="sheet" id="sh-cart"><div class="sh-head"><button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button><h2>Meu carrinho</h2></div><div class="sh-body" id="cartBody"></div><div class="sh-foot" id="cartFoot"></div></div>
 
 <div class="sheet" id="sh-type">
   <div class="sh-head">
-    <button class="sh-back" onclick="openSheet('sh-cart')"><i class="fas fa-arrow-left"></i></button>
+    <button class="sh-back" onclick="openSheet('sh-cart')" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
     <h2>Fazer pedido</h2>
   </div>
 
   <div class="sh-body">
     <div class="opts">
       <button class="opt" id="optDelivery" onclick="setType('Delivery')">
-        <span><i class="fa-solid fa-motorcycle"></i></span>Delivery
+        <span><svg class="ico so"><use href="#i-moto"/></svg></span>Delivery
       </button>
       <button class="opt" id="optMesa" onclick="setType('Mesa')">
-        <span><i class="fa-solid fa-utensils"></i></span>Mesa
+        <span><svg class="ico so"><use href="#i-talher"/></svg></span>Mesa
       </button>
     </div>
 
     <div id="deliveryBox" style="display:none">
       <label class="lbl" for="bairro">
-        <i class="fa-solid fa-location-dot"></i> Bairro (obrigatório)
+        <svg class="ico"><use href="#i-pin"/></svg> Bairro (obrigatório)
       </label>
       <select class="inp" id="bairro" onchange="state.bairro=this.value"></select>
 
       <p class="muted" style="margin-top:6px">
-        <i class="fa-solid fa-truck"></i> Taxa de entrega: 50 MT
+        <svg class="ico"><use href="#i-camiao"/></svg> Taxa de entrega: 50 MT
       </p>
 
       <label class="lbl" for="ref">
-        <i class="fa-solid fa-location-crosshairs"></i> Local de referência (opcional)
+        <svg class="ico"><use href="#i-alvo"/></svg> Local de referência (opcional)
       </label>
       <input class="inp" id="ref" placeholder="Ex: perto da paragem" oninput="state.ref=this.value">
     </div>
 
     <div id="mesaBox" style="display:none">
       <label class="lbl">
-        <i class="fa-solid fa-chair"></i> Número da mesa (obrigatório)
+        <svg class="ico"><use href="#i-cadeira"/></svg> Número da mesa (obrigatório)
       </label>
       <div class="mesas" id="mesas"></div>
     </div>
@@ -490,7 +490,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 
   <div class="sh-foot">
     <button class="btn" onclick="goSummary()">
-      Rever pedido <i class="fa-solid fa-arrow-right"></i>
+      <svg class="ico"><use href="#i-seta"/></svg>Rever pedido
     </button>
   </div>
 </div>
@@ -498,32 +498,24 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 
 <div class="sheet" id="sh-sum">
   <div class="sh-head">
-    <button class="sh-back" onclick="openSheet('sh-type')" aria-label="Voltar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
-    </button>
+    <button class="sh-back" onclick="openSheet('sh-type')" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
     <h2>Resumo do pedido</h2>
   </div>
   <div class="sh-body" id="sumBody"></div>
   <div class="sh-foot">
     <button class="btn alt" onclick="openSheet('sh-type')">
-      <i class="fa-solid fa-pen-to-square"></i> Corrigir pedido
+      <svg class="ico"><use href="#i-editar"/></svg>Corrigir pedido
     </button>
     <button class="btn" onclick="sendOrder()">
-      <i class="fa-solid fa-paper-plane"></i> Enviar pedido
+      <svg class="ico"><use href="#i-enviar"/></svg>Enviar pedido
     </button>
   </div>
 </div>
 
 <div class="sheet" id="sh-orders">
   <div class="sh-head">
-    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
-    </button>
-    <h2><i class="fa-solid fa-box"></i> Pedidos</h2>
+    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
+    <h2><svg class="ico"><use href="#i-caixa"/></svg>Pedidos</h2>
   </div>
   <div class="sh-body" id="ordersBody"></div>
 </div>
@@ -531,61 +523,59 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 
 <div class="sheet" id="sh-track">
   <div class="sh-head">
-    <button class="sh-back" onclick="closeTrack()" aria-label="Voltar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-    </button>
-    <h2><svg class="ic" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/></svg>Acompanhar entrega</h2>
+    <button class="sh-back" onclick="closeTrack()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
+    <h2><svg class="ico"><use href="#i-entrega"/></svg>Acompanhar entrega</h2>
   </div>
   <div id="trkMap" class="trk-map"></div>
   <div class="trk-box">
     <div class="trk-eta" id="trkEta">A ligar…</div>
     <div class="trk-sub" id="trkSub"></div>
-    <button class="btn alt trk" id="trkGps" onclick="startMyGps()" style="display:none"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Partilhar a minha localização</button>
+    <button class="btn alt trk" id="trkGps" onclick="startMyGps()" style="display:none"><svg class="ico"><use href="#i-pin"/></svg>Partilhar a minha localização</button>
   </div>
 </div>
 
 <div class="sheet" id="sh-fb">
   <div class="sh-head">
-    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
     <h2>A sua opinião</h2>
   </div>
   <div class="sh-body">
     <div class="card" style="text-align:center"><b>Como foi a sua experiência?</b><div class="muted" style="margin-top:4px">Diga-nos o que podemos melhorar.</div></div>
     <div class="fb-stars" id="fbStars"></div>
     <textarea class="fb-text" id="fbText" maxlength="500" placeholder="Escreva aqui o seu comentário (opcional)"></textarea>
-    <button class="btn" id="fbSend" onclick="sendFeedback()">Enviar feedback</button>
+    <button class="btn" id="fbSend" onclick="sendFeedback()"><svg class="ico"><use href="#i-enviar"/></svg>Enviar feedback</button>
   </div>
 </div>
 
 <div class="sheet" id="sh-chat">
   <div class="sh-head">
-    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
     <h2>Suporte Kanandzika</h2>
   </div>
   <div class="chat-body" id="chatBody"></div>
   <div class="chat-bar">
     <textarea id="chatIn" rows="1" maxlength="1000" placeholder="Escreva a sua mensagem"></textarea>
-    <button id="chatSend" onclick="sendChat()" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button>
+    <button id="chatSend" onclick="sendChat()" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Enviar</button>
   </div>
 </div>
 
-<div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"> <path d="M15 18l-6-6 6-6"/> </svg> </button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa é 50 MT) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
+<div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa é 50 MT) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
 <div class="sheet" id="sh-profile">
 <style>
 #sh-profile{background:#fff;color:#222}
 #sh-profile .sh-head{background:#fff;color:#222;border-bottom:1px solid #eee;height:58px;display:flex;align-items:center;padding:0 16px}
-#sh-profile .sh-back{background:none;border:0;font-size:30px;color:#333;padding:0 12px 0 0}
+#sh-profile .sh-back{background:none;border:0;color:#333;padding:0 12px 0 0}
 #sh-profile .sh-head h2{font-size:19px;margin:0;font-weight:700}
 #sh-profile .profile-content{padding:18px 16px 90px}
 #sh-profile .profile-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 #sh-profile .profile-title h3{margin:0;font-size:22px}
-#sh-profile .settings{width:40px;height:40px;border:0;border-radius:50%;background:#f0faf6;color:#00A86B;font-size:19px}
+#sh-profile .settings{height:40px;padding:0 13px;border:0;border-radius:20px;background:#f0faf6;color:#00A86B;font-size:12px;font-weight:700;display:inline-flex;align-items:center}
 #sh-profile .user-card{background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:13px;box-shadow:0 4px 18px rgba(0,0,0,.07);margin-bottom:16px}
 #sh-profile .avatar{width:64px;height:64px;border-radius:50%;background:#e3f7ef;color:#00A86B;display:flex;align-items:center;justify-content:center;font-size:28px}
 #sh-profile .user-info{flex:1}
 #sh-profile .user-info strong{display:block;font-size:16px;margin-bottom:5px}
 #sh-profile .user-info span{display:block;color:#777;font-size:13px;margin-bottom:3px}
-#sh-profile .edit-btn{border:0;background:#e5f7ef;color:#008b59;border-radius:10px;padding:9px 12px;font-weight:600}
+#sh-profile .edit-btn,#sh-profile .subscribe,#sh-profile .logout{display:inline-flex;align-items:center;justify-content:center}#sh-profile .logout{display:flex}#sh-profile .edit-btn{border:0;background:#e5f7ef;color:#008b59;border-radius:10px;padding:9px 12px;font-weight:600}
 #sh-profile .plus-banner{background:#075b3e;color:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:18px}
 #sh-profile .plus-icon{width:46px;height:46px;border-radius:50%;background:#0b7953;display:flex;align-items:center;justify-content:center;font-size:21px}
 #sh-profile .plus-info{flex:1}
@@ -597,12 +587,12 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 #sh-profile .profile-item:last-child{border-bottom:0}
 #sh-profile .item-icon{width:40px;height:40px;border-radius:50%;background:#e9f8f2;color:#00A86B;display:flex;align-items:center;justify-content:center;font-size:17px;margin-right:13px}
 #sh-profile .item-text{flex:1;font-size:14px;font-weight:600}
-#sh-profile .chevron{color:#aaa;font-size:22px}
+#sh-profile .chevron{color:#aaa;font-size:22px}#sh-profile .avatar svg.ico{width:30px;height:30px}#sh-profile .plus-icon svg.ico{width:22px;height:22px}#sh-profile .item-icon svg.ico{width:19px;height:19px}
 #sh-profile .logout{width:100%;margin-top:18px;border:0;border-radius:14px;padding:14px;background:#fff0f1;color:#d94b59;font-weight:700;font-size:14px}
 </style>
 
 <div class="sh-head">
-<button class="sh-back" onclick="closeSheets()">‹</button>
+<button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
 <h2>Perfil - Kanabdzika Delivery</h2>
 </div>
 
@@ -611,69 +601,69 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 
 <div class="profile-title">
 <h3>Meu Perfil</h3>
-<button class="settings">⚙</button>
+<button class="settings"><svg class="ico"><use href="#i-defs"/></svg>Definições</button>
 </div>
 
 <div class="user-card">
-<div class="avatar">♙</div>
+<div class="avatar"><svg class="ico so"><use href="#i-user"/></svg></div>
 <div class="user-info">
 <strong>Nome do Utilizador</strong>
 <span>+258 84 000 0000</span>
 <span>Cliente desde Set 2026</span>
 </div>
-<button class="edit-btn">✎ Editar</button>
+<button class="edit-btn"><svg class="ico"><use href="#i-editar"/></svg>Editar</button>
 </div>
 
 <div class="plus-banner">
-<div class="plus-icon">★</div>
+<div class="plus-icon"><svg class="ico so"><use href="#i-estrela"/></svg></div>
 <div class="plus-info">
 <strong>Kanabdzika Plus</strong>
 <span>Taxas mais baixas e benefícios exclusivos</span>
 </div>
-<button class="subscribe">Subscrever</button>
+<button class="subscribe"><svg class="ico"><use href="#i-estrela"/></svg>Subscrever</button>
 </div>
 
 <div class="profile-menu">
 
 <button class="profile-item">
-<span class="item-icon">⌖</span>
+<span class="item-icon"><svg class="ico so"><use href="#i-pin"/></svg></span>
 <span class="item-text">Meus endereços</span>
 <span class="chevron">›</span>
 </button>
 
 <button class="profile-item">
-<span class="item-icon">▣</span>
+<span class="item-icon"><svg class="ico so"><use href="#i-cartao"/></svg></span>
 <span class="item-text">Métodos de pagamento</span>
 <span class="chevron">›</span>
 </button>
 
 <button class="profile-item">
-<span class="item-icon">▱</span>
+<span class="item-icon"><svg class="ico so"><use href="#i-bilhete"/></svg></span>
 <span class="item-text">Vouchers e promoções</span>
 <span class="chevron">›</span>
 </button>
 
 <button class="profile-item">
-<span class="item-icon">♧</span>
+<span class="item-icon"><svg class="ico so"><use href="#i-sino"/></svg></span>
 <span class="item-text">Notificações</span>
 <span class="chevron">›</span>
 </button>
 
 <button class="profile-item">
-<span class="item-icon">♧</span>
+<span class="item-icon"><svg class="ico so"><use href="#i-ajuda"/></svg></span>
 <span class="item-text">Ajuda e suporte</span>
 <span class="chevron">›</span>
 </button>
 
 <button class="profile-item">
-<span class="item-icon">ⓘ</span>
+<span class="item-icon"><svg class="ico so"><use href="#i-info"/></svg></span>
 <span class="item-text">Sobre a Kanabdzika Delivery</span>
 <span class="chevron">›</span>
 </button>
 
 </div>
 
-<button class="logout">↪ &nbsp; Terminar sessão</button>
+<button class="logout"><svg class="ico"><use href="#i-sair"/></svg>Terminar sessão</button>
 
 </div>
 </div>
@@ -749,7 +739,7 @@ function markProducts(){
     p.classList.toggle("sel",q>0);
     let bd=p.querySelector(".selbadge");
     if(!bd){bd=document.createElement("span");bd.className="selbadge";p.appendChild(bd);}
-    bd.textContent="✓ "+q;
+    bd.innerHTML=Ico("ok",{so:1})+q;
   });
 }
 function animAdd(id,btn){
@@ -795,13 +785,13 @@ function chg(id,d){
 function renderCart(){
   const L=lines();
   if(!L.length){
-    $("cartBody").innerHTML='<div class="empty">🛒<br><br>O seu carrinho está vazio.<br>Adicione produtos no ecrã inicial.</div>';
-    $("cartFoot").innerHTML='<button class="btn" onclick="closeSheets()">Ver produtos</button>';
+    $("cartBody").innerHTML='<div class="empty">'+Ico('carrinho',{so:1})+'<br>O seu carrinho está vazio.<br>Adicione produtos no ecrã inicial.</div>';
+    $("cartFoot").innerHTML='<button class="btn" onclick="closeSheets()">'+Ico('burger')+'Ver produtos</button>';
     return;
   }
   $("cartBody").innerHTML=L.map(l=>`<div class="card item"><img src="${l.img}" alt=""><div class="info"><h4>${l.n}</h4><span class="price">${mt(l.p)}</span></div><div class="stepper"><button onclick="chg('${l.id}',-1)">−</button><b>${l.q}</b><button onclick="chg('${l.id}',1)">+</button></div></div>`).join("")+
     `<div class="card"><div class="row total" style="border:0;margin:0;padding:0"><span>Subtotal</span><span>${mt(subtotal())}</span></div></div>`;
-  $("cartFoot").innerHTML='<button class="btn" onclick="openSheet(\'sh-type\')">Fazer pedido</button>';
+  $("cartFoot").innerHTML='<button class="btn" onclick="openSheet(\'sh-type\')">'+Ico('recibo')+'Fazer pedido</button>';
 }
 
 /* ---------- tipo de pedido ---------- */
@@ -822,8 +812,8 @@ function setMesa(n){
 }
 function renderTypeTotal(){
   $("typeTotal").innerHTML=`<div class="row"><span>Subtotal</span><span>${mt(subtotal())}</span></div>`+
-    (state.type==="Delivery"?`<div class="row"><span>🚚 Taxa de entrega</span><span>${mt(FEE)}</span></div>`:"")+
-    `<div class="row total"><span>💰 Total</span><span>${mt(total())}</span></div>`;
+    (state.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Taxa de entrega</span><span>${mt(FEE)}</span></div>`:"")+
+    `<div class="row total"><span>${Ico("dinheiro")}Total</span><span>${mt(total())}</span></div>`;
 }
 function validate(){
   if(!lines().length)return "O carrinho está vazio.";
@@ -833,7 +823,7 @@ function validate(){
   if(state.type==="Mesa"&&!(Number.isInteger(state.mesa)&&state.mesa>=1&&state.mesa<=5))return "Selecione a mesa (1 a 5).";
   return "";
 }
-function showErr(m){const e=$("typeErr");e.textContent="⚠️ "+m;e.classList.add("show");}
+function showErr(m){const e=$("typeErr");e.innerHTML=Ico("alerta")+esc(m);e.classList.add("show");}
 
 /* ---------- resumo ---------- */
 function goSummary(){
@@ -841,15 +831,15 @@ function goSummary(){
   if(e){openSheet("sh-type");showErr(e);return;}
   $("typeErr").classList.remove("show");
   const ref=state.ref.trim();
-  let h=`<div class="card"><div class="row"><span>Tipo</span><span>${state.type==="Delivery"?"🛵 Delivery":"🍽️ Mesa"}</span></div>
-  <div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div>
-  <div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div>`;
-  if(state.type==="Delivery"){h+=`<div class="row"><span>📍 Bairro</span><span>${esc(state.bairro)}</span></div>`;if(ref)h+=`<div class="row"><span>📌 Referência</span><span>${esc(ref)}</span></div>`;}
-  else h+=`<div class="row"><span>🪑 Mesa</span><span>${state.mesa}</span></div>`;
-  h+=`</div><div class="card"><b>🛒 Itens</b>`+lines().map(l=>`<div class="row"><span>${l.q}x ${l.n}</span><span>${mt(l.q*l.p)}</span></div>`).join("")+
+  let h=`<div class="card"><div class="row"><span>Tipo</span><span>${state.type==="Delivery"?Ico("moto")+"Delivery":Ico("talher")+"Mesa"}</span></div>
+  <div class="row"><span>${Ico("user")}Nome</span><span>${esc(user.name)}</span></div>
+  <div class="row"><span>${Ico("phone")}Telefone</span><span>${fmtPhone(user.phone)}</span></div>`;
+  if(state.type==="Delivery"){h+=`<div class="row"><span>${Ico("pin")}Bairro</span><span>${esc(state.bairro)}</span></div>`;if(ref)h+=`<div class="row"><span>${Ico("alvo")}Referência</span><span>${esc(ref)}</span></div>`;}
+  else h+=`<div class="row"><span>${Ico("cadeira")}Mesa</span><span>${state.mesa}</span></div>`;
+  h+=`</div><div class="card"><b>${Ico("carrinho")}Itens</b>`+lines().map(l=>`<div class="row"><span>${l.q}x ${l.n}</span><span>${mt(l.q*l.p)}</span></div>`).join("")+
   `<div class="row"><span>Subtotal</span><span>${mt(subtotal())}</span></div>`+
-  (state.type==="Delivery"?`<div class="row"><span>🚚 Taxa de entrega</span><span>${mt(FEE)}</span></div>`:"")+
-  `<div class="row total"><span>💰 TOTAL</span><span>${mt(total())}</span></div></div>`;
+  (state.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Taxa de entrega</span><span>${mt(FEE)}</span></div>`:"")+
+  `<div class="row total"><span>${Ico("dinheiro")}TOTAL</span><span>${mt(total())}</span></div></div>`;
   $("sumBody").innerHTML=h;
   openSheet("sh-sum");
 }
@@ -897,16 +887,16 @@ function sendOrder(){
 /* ---------- pedidos ---------- */
 function renderOrders(){
   const O=load("kz_orders",[]).slice().reverse();
-  if(!O.length){$("ordersBody").innerHTML='<div class="empty">📦<br><br>Ainda não fez nenhum pedido.</div>';return;}
-  $("ordersBody").innerHTML=O.map(o=>`<div class="card"><b style="color:var(--cyan);font-size:15px">🍔 PEDIDO #${String(o.id).padStart(3,"0")}</b>
-  <div class="row"><span>${o.type==="Delivery"?"🛵 Delivery":"🍽️ Mesa"}</span><span>📅 ${fmtDate(o.ts)}</span></div>
-  <div class="row"><span>👤 ${esc(o.name)}</span><span>📞 ${fmtPhone(o.phone)}</span></div>
-  ${o.type==="Delivery"?`<div class="row"><span>📍 Bairro</span><span>${esc(o.bairro)}</span></div>`+(o.ref?`<div class="row"><span>📌 Referência</span><span>${esc(o.ref)}</span></div>`:""):`<div class="row"><span>🍽️ Mesa</span><span>${o.mesa}</span></div>`}
-  <div class="muted" style="margin-top:8px">🛒 ITENS</div>
+  if(!O.length){$("ordersBody").innerHTML='<div class="empty">'+Ico("caixa",{so:1})+'<br>Ainda não fez nenhum pedido.</div>';return;}
+  $("ordersBody").innerHTML=O.map(o=>`<div class="card"><b style="color:var(--cyan);font-size:15px">${Ico("burger")}PEDIDO #${String(o.id).padStart(3,"0")}</b>
+  <div class="row"><span>${o.type==="Delivery"?Ico("moto")+"Delivery":Ico("talher")+"Mesa"}</span><span>${Ico("calendario")}${fmtDate(o.ts)}</span></div>
+  <div class="row"><span>${Ico("user")}${esc(o.name)}</span><span>${Ico("phone")}${fmtPhone(o.phone)}</span></div>
+  ${o.type==="Delivery"?`<div class="row"><span>${Ico("pin")}Bairro</span><span>${esc(o.bairro)}</span></div>`+(o.ref?`<div class="row"><span>${Ico("alvo")}Referência</span><span>${esc(o.ref)}</span></div>`:""):`<div class="row"><span>${Ico("talher")}Mesa</span><span>${o.mesa}</span></div>`}
+  <div class="muted" style="margin-top:8px">${Ico("carrinho")}ITENS</div>
   ${o.items.map(i=>`<div class="row"><span>${i.q}x ${esc(i.n)}</span><span>${mt(i.q*i.p)}</span></div>`).join("")}
-  ${o.type==="Delivery"?`<div class="row"><span>🚚 Entrega</span><span>${mt(o.fee)}</span></div>`:""}
-  <div class="row total"><span>💰 TOTAL</span><span>${mt(o.total)}</span></div>
-  ${o.track_id?`<button class="btn alt" style="margin:10px 0 0" onclick="openTrack('${o.track_id}')"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/></svg>Acompanhar entrega</button>`:""}</div>`).join("");
+  ${o.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Entrega</span><span>${mt(o.fee)}</span></div>`:""}
+  <div class="row total"><span>${Ico("dinheiro")}TOTAL</span><span>${mt(o.total)}</span></div>
+  ${o.track_id?`<button class="btn alt" style="margin:10px 0 0" onclick="openTrack('${o.track_id}')"><svg class="ico"><use href="#i-entrega"/></svg>Acompanhar entrega</button>`:""}</div>`).join("");
 }
 
 /* ---------- perfil ---------- */
@@ -942,7 +932,7 @@ async function reenviarFoto(){
 }
 function renderProfile(){
   const src=avatarSrc();
-  $("profileBody").innerHTML=`<div class="avatar-big">${src?`<img src="${src}" alt="">`:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'}</div><button class="foto-link" onclick="trocarFoto()">${src?"Alterar foto":"Adicionar foto"}</button><div class="card"><div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="openFeedback()">Dar feedback</button><button class="btn alt" onclick="logout()">Sair da conta</button>`;
+  $("profileBody").innerHTML=`<div class="avatar-big">${src?`<img src="${src}" alt="">`:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'}</div><button class="foto-link" onclick="trocarFoto()">${Ico("camera")}${src?"Alterar foto":"Adicionar foto"}</button><div class="card"><div class="row"><span>${Ico("user")}Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>${Ico("phone")}Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="openFeedback()">${Ico("estrela")}Dar feedback</button><button class="btn alt" onclick="logout()">${Ico("sair")}Sair da conta</button>`;
 }
 function logout(){const go=()=>{localStorage.removeItem("kz_session");localStorage.removeItem("kz_user");location.replace("index.html");};try{sb.auth.signOut().then(go,go);}catch(e){go();}}
 

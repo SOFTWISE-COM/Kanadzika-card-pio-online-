@@ -38,13 +38,14 @@
   const ICO = {
     moto: '<circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/>',
     pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    entrega: '<circle cx="7.5" cy="5.5" r="2"/><path d="M7.7 8.8 8.8 15M8 10.2 4.5 12.8M8 10.2l4.3-.9 4-3.8M8.8 15 5.5 21.5M8.8 15l4.2 2.8-.4 3.7"/><path d="M11.5 4.7H22"/><path d="M13.7 4.7a3.3 3.3 0 0 1 6.6 0"/>',
     casa: '<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'
   };
   // tipo: 'drv' (entregador) ou 'cli' (cliente)
   const pin = t => {
     const drv = t === 'drv';
     return L.divIcon({ className: '', iconSize: [44, 44], iconAnchor: [22, 22],
-      html: `<div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);background:${drv ? '#00e5ff' : '#ff4357'};color:${drv ? '#00282d' : '#fff'}">${S(drv ? ICO.moto : ICO.casa, 24)}</div>` });
+      html: `<div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);background:${drv ? '#00e5ff' : '#ff4357'};color:${drv ? '#00282d' : '#fff'}">${S(drv ? ICO.entrega : ICO.casa, 26)}</div>` });
   };
   function marcar(m, store, chave, p, tipo) {
     if (!p) return;

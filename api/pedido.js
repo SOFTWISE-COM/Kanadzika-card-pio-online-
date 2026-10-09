@@ -61,15 +61,15 @@ module.exports = async (req, res) => {
     const agora = new Date();
     const tz = { timeZone: 'Africa/Maputo' };
     const tel = telefone.replace(/(\d{2})(\d{3})(\d{4})/, '$1 $2 $3');
-    let t = `*🍔 PEDIDO #${ped.id} - ${NOME.toUpperCase()} 🍔*\n\n📅 *Data:* ${agora.toLocaleDateString('pt-PT', tz)} às ${agora.toLocaleTimeString('pt-PT', tz)}\n`;
+    let t = `*PEDIDO #${ped.id} - ${NOME.toUpperCase()}*\n\n*Data:* ${agora.toLocaleDateString('pt-PT', tz)} às ${agora.toLocaleTimeString('pt-PT', tz)}\n`;
     t += tipo === 'mesa'
-      ? `🍽️ *Tipo:* Na mesa\n🪑 *Mesa:* ${mesa}\n`
-      : `🛵 *Tipo:* Delivery\n\n👤 *Cliente:* ${cliente}\n📞 *Tel:* +258 ${tel}\n📍 *Bairro:* ${bairro}\n` +
-        (referencia ? `📌 *Referência:* ${referencia}\n` : '');
-    t += `\n🛒 *ITENS:*\n` + itens.map((i) => `${i.q}x ${i.nome} — ${MT(i.q * i.preco)}`).join('\n') + '\n';
-    if (taxa) t += `\n🚚 *Taxa de entrega:* ${MT(taxa)}\n`;
-    if (obs) t += `\n📝 *Obs:* ${obs}\n`;
-    t += `\n💰 *TOTAL: ${MT(total)}*`;
+      ? `*Tipo:* Na mesa\n*Mesa:* ${mesa}\n`
+      : `*Tipo:* Delivery\n\n*Cliente:* ${cliente}\n*Tel:* +258 ${tel}\n*Bairro:* ${bairro}\n` +
+        (referencia ? `*Referência:* ${referencia}\n` : '');
+    t += `\n*ITENS:*\n` + itens.map((i) => `${i.q}x ${i.nome} — ${MT(i.q * i.preco)}`).join('\n') + '\n';
+    if (taxa) t += `\n*Taxa de entrega:* ${MT(taxa)}\n`;
+    if (obs) t += `\n*Obs:* ${obs}\n`;
+    t += `\n*TOTAL: ${MT(total)}*`;
     await enviar(t);
   } catch (_) { /* ignora */ }
 

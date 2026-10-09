@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
+<script src="icones.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
@@ -10,7 +11,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#0c1a1b;color:#e6f4f3;font-family:Roboto,system-ui,sans-serif;padding-bottom:40px}
 header{position:sticky;top:0;background:#016369;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:2}
-header b{font-size:18px}header span{font-size:12px;opacity:.85}
+header b{font-size:18px}.tt{display:inline-flex;align-items:center}.bt button{display:inline-flex;align-items:center;justify-content:center}.it svg.ico{width:1em;height:1em}header span{font-size:12px;opacity:.85}
 #login{padding:24px 16px;display:grid;gap:12px}
 input,button{font:inherit;border-radius:12px;border:0;padding:14px;font-size:16px}
 input{background:#142c2d;color:#e6f4f3;border:1px solid #244243}
@@ -27,10 +28,10 @@ button{background:#0a8b92;color:#fff;font-weight:700}
 </style>
 </head>
 <body>
-<header><b>🍔 Pedidos</b><span id="st"></span></header>
+<header><b class="tt"><svg class="ico"><use href="#i-burger"/></svg>Pedidos</b><span id="st"></span></header>
 <div id="login">
   <input id="pw" type="password" placeholder="Senha do painel" autocomplete="current-password">
-  <button id="ent">Entrar</button><div id="er" style="color:#ff8a80"></div>
+  <button id="ent" style="display:inline-flex;align-items:center;justify-content:center"><svg class="ico"><use href="#i-sair"/></svg>Entrar</button><div id="er" style="color:#ff8a80"></div>
 </div>
 <div id="lista" hidden></div>
 <script>
@@ -40,6 +41,7 @@ let key=sessionStorage.getItem("kzk")||"",vistos=null,ac,timer;
 const H=()=>({"x-admin-key":key,"Content-Type":"application/json"});
 function bip(){try{ac=ac||new AudioContext();[880,1175].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.setValueAtTime(.2,ac.currentTime+i*.18);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+i*.18+.3);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*.18);o.stop(ac.currentTime+i*.18+.3)})}catch(e){}}
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ICN={preparando:"talher",pronto:"ok",entregue:"entrega"};
 const PROX={novo:["preparando","Preparar"],preparando:["pronto","Pronto"],pronto:["entregue","Entregue"]};
 async function carregar(){
   let r;try{r=await fetch("/api/pedidos",{headers:H()})}catch(e){$("#st").textContent="sem ligação";return}
@@ -52,11 +54,11 @@ async function carregar(){
   $("#st").textContent="atualizado "+new Date().toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
   $("#lista").innerHTML=j.pedidos.length?j.pedidos.map(p=>{
     const hora=new Date(p.criado_em).toLocaleTimeString("pt-PT",{timeZone:"Africa/Maputo",hour:"2-digit",minute:"2-digit"});
-    const quem=p.tipo==="mesa"?`🪑 Mesa ${esc(p.mesa)}`:`🛵 ${esc(p.cliente)} · +258 ${esc(p.telefone)}<br>📍 ${esc(p.bairro)}${p.referencia?" · "+esc(p.referencia):""}`;
+    const quem=p.tipo==="mesa"?`${Ico("cadeira")}Mesa ${esc(p.mesa)}`:`${Ico("moto")}${esc(p.cliente)} · +258 ${esc(p.telefone)}<br>${Ico("pin")}${esc(p.bairro)}${p.referencia?" · "+esc(p.referencia):""}`;
     const nx=PROX[p.estado];
     return `<div class="c ${p.estado}"><h3>#${p.id} · ${MT(p.total)}</h3><small>${hora} · ${p.estado}</small><div class="it">${quem}</div>
-    <div class="it">${p.itens.map(i=>`${i.q}x ${esc(i.nome)}`).join("<br>")}${p.taxa?`<br>🚚 Taxa ${MT(p.taxa)}`:""}${p.obs?`<br>📝 ${esc(p.obs)}`:""}</div>
-    <div class="bt">${nx?`<button data-i="${p.id}" data-e="${nx[0]}">${nx[1]}</button>`:""}${["novo","preparando","pronto"].includes(p.estado)?`<button class="x" data-i="${p.id}" data-e="cancelado">✕</button>`:""}</div></div>`}).join(""):`<div class="vazio">Sem pedidos ainda.</div>`;
+    <div class="it">${p.itens.map(i=>`${i.q}x ${esc(i.nome)}`).join("<br>")}${p.taxa?`<br>${Ico("camiao")}Taxa ${MT(p.taxa)}`:""}${p.obs?`<br>${Ico("nota")}${esc(p.obs)}`:""}</div>
+    <div class="bt">${nx?`<button data-i="${p.id}" data-e="${nx[0]}">${Ico(ICN[nx[0]])}${nx[1]}</button>`:""}${["novo","preparando","pronto"].includes(p.estado)?`<button class="x" data-i="${p.id}" data-e="cancelado">${Ico("fechar")}Cancelar</button>`:""}</div></div>`}).join(""):`<div class="vazio">Sem pedidos ainda.</div>`;
 }
 $("#lista").onclick=async e=>{const b=e.target.closest("button[data-i]");if(!b)return;b.disabled=true;
   await fetch("/api/pedidos",{method:"PATCH",headers:H(),body:JSON.stringify({id:+b.dataset.i,estado:b.dataset.e})});carregar()};
