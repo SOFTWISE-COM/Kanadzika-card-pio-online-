@@ -1,6 +1,6 @@
-const CACHE='kanandzika-v19';
-const FILES=['./','index.html','home.html','manifest.json','rastreio.js','icones.js','perfil.js','foto.js','assets/logo.png','assets/splash.jpg','assets/intro1.png','assets/intro2.png','assets/intro3.png','assets/batata.png','assets/icon-192.png','assets/icon-512.png','assets/icon-maskable-512.png','assets/apple-touch-icon.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
+const CACHE='kanandzika-v20';
+const FILES=['./','index.html','home.html','manifest.json','rastreio.js','icones.js','perfil.js','foto.js','assets/logo.png','assets/splash.jpg','assets/intro1.png','assets/intro2.png','assets/batata.png','assets/icon-192.png','assets/icon-512.png','assets/icon-maskable-512.png','assets/apple-touch-icon.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(FILES.map(f=>c.add(f).catch(()=>{})))).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET'||!e.request.url.startsWith(self.location.origin)||e.request.url.includes('admin'))return;

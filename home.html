@@ -369,7 +369,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <div class="hero-tags"><span>Premium</span><span>Rápido</span></div>
 </div>
 </div>
-<div class="slide" style="background-image:url('assets/intro3.png')">
+<div class="slide" style="background-image:url('assets/hb.png')">
 <div class="hero-content">
 <small>PROMOÇÃO</small>
 <h2>Mais sabor, mais vontade.</h2>
@@ -495,19 +495,10 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
     </div>
 
     <div id="deliveryBox" style="display:none">
-      <label class="lbl" for="bairro">
-        <svg class="ico"><use href="#i-pin"/></svg> Bairro (obrigatório)
-      </label>
-      <select class="inp" id="bairro" onchange="state.bairro=this.value"></select>
-
+      <div class="card" id="locBox" style="margin:10px 0 6px"></div>
       <p class="muted" style="margin-top:6px">
         <svg class="ico"><use href="#i-camiao"/></svg> Taxa de entrega: 50 MT
       </p>
-
-      <label class="lbl" for="ref">
-        <svg class="ico"><use href="#i-alvo"/></svg> Local de referência (opcional)
-      </label>
-      <input class="inp" id="ref" placeholder="Ex: perto da paragem" oninput="state.ref=this.value">
     </div>
 
     <div id="mesaBox" style="display:none">
@@ -657,7 +648,7 @@ const user=load("kz_user",null);
 if(!user||!localStorage.getItem("kz_session")){location.replace("index.html");}
 
 let cart=load("kz_cart",{});
-const state={type:null,bairro:"",ref:"",mesa:0};
+const state={type:null,bairro:"",ref:"",mesa:0,loc:null,locSt:""};
 
 /* ---------- utilitários ---------- */
 function fmtPhone(p){
@@ -747,7 +738,6 @@ function renderCart(){
 }
 
 /* ---------- tipo de pedido ---------- */
-$("bairro").innerHTML='<option value="">Selecione o bairro</option>'+BAIRROS.map(b=>`<option>${b}</option>`).join("");
 $("mesas").innerHTML=[1,2,3,4,5].map(n=>`<button id="m${n}" onclick="setMesa(${n})">${n}</button>`).join("");
 function setType(t){
   state.type=t;
@@ -756,7 +746,19 @@ function setType(t){
   $("deliveryBox").style.display=t==="Delivery"?"block":"none";
   $("mesaBox").style.display=t==="Mesa"?"block":"none";
   $("typeErr").classList.remove("show");
+  if(t==="Delivery"){renderLoc();if(!state.loc&&state.locSt!=="busy")pedirLoc();}
   renderTypeTotal();
+}
+function renderLoc(){
+  const st=state.locSt,el=$("locBox");if(!el)return;
+  if(state.loc)el.innerHTML=`<b>${Ico("pin")}Localização obtida</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">O entregador vai até ao ponto onde está agora. Confirme que está no local da entrega.</div><button class="btn alt" onclick="pedirLoc()">Atualizar localização</button>`;
+  else if(st==="busy")el.innerHTML=`<b>${Ico("pin")}A obter a sua localização…</b><div class="muted" style="margin-top:6px">Permita o acesso à localização quando o telemóvel perguntar.</div>`;
+  else el.innerHTML=`<b>${Ico("pin")}Localização da entrega</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">${st==="erro"?"Não foi possível obter a localização. Ative a localização do telemóvel e tente de novo.":"Usamos o mapa para chegar até si, sem escolher bairro."}</div><button class="btn" onclick="pedirLoc()">Usar a minha localização</button>`;
+}
+function pedirLoc(){
+  if(!navigator.geolocation){state.locSt="erro";renderLoc();return;}
+  state.locSt="busy";renderLoc();
+  navigator.geolocation.getCurrentPosition(p=>{state.loc={lat:p.coords.latitude,lng:p.coords.longitude};state.locSt="ok";renderLoc();},()=>{state.loc=null;state.locSt="erro";renderLoc();},{enableHighAccuracy:true,timeout:20000,maximumAge:15000});
 }
 function setMesa(n){
   state.mesa=n;
@@ -771,7 +773,7 @@ function validate(){
   if(!lines().length)return "O carrinho está vazio.";
   if(!user||!user.name||!user.phone)return "Faltam o nome e o telefone do cadastro.";
   if(!state.type)return "Escolha Delivery ou Mesa.";
-  if(state.type==="Delivery"&&!BAIRROS.includes(state.bairro))return "Selecione o bairro para a entrega.";
+  if(state.type==="Delivery"&&!state.loc)return "Ative a localização do telemóvel para a entrega.";
   if(state.type==="Mesa"&&!(Number.isInteger(state.mesa)&&state.mesa>=1&&state.mesa<=5))return "Selecione a mesa (1 a 5).";
   return "";
 }
@@ -782,11 +784,10 @@ function goSummary(){
   const e=validate();
   if(e){openSheet("sh-type");showErr(e);return;}
   $("typeErr").classList.remove("show");
-  const ref=state.ref.trim();
   let h=`<div class="card"><div class="row"><span>Tipo</span><span>${state.type==="Delivery"?Ico("moto")+"Delivery":Ico("talher")+"Mesa"}</span></div>
   <div class="row"><span>${Ico("user")}Nome</span><span>${esc(user.name)}</span></div>
   <div class="row"><span>${Ico("phone")}Telefone</span><span>${fmtPhone(user.phone)}</span></div>`;
-  if(state.type==="Delivery"){h+=`<div class="row"><span>${Ico("pin")}Bairro</span><span>${esc(state.bairro)}</span></div>`;if(ref)h+=`<div class="row"><span>${Ico("alvo")}Referência</span><span>${esc(ref)}</span></div>`;}
+  if(state.type==="Delivery"){h+=`<div class="row"><span>${Ico("pin")}Local de entrega</span><span>A sua localização (mapa)</span></div>`;}
   else h+=`<div class="row"><span>${Ico("cadeira")}Mesa</span><span>${state.mesa}</span></div>`;
   h+=`</div><div class="card"><b>${Ico("carrinho")}Itens</b>`+lines().map(l=>`<div class="row"><span>${l.q}x ${l.n}</span><span>${mt(l.q*l.p)}</span></div>`).join("")+
   `<div class="row"><span>Subtotal</span><span>${mt(subtotal())}</span></div>`+
@@ -825,7 +826,7 @@ async function syncPending(){
 function askConfirm(){
   const e=validate();
   if(e){openSheet("sh-type");showErr(e);return;}
-  $("confTxt").textContent="Pedido de "+lines().reduce((s,l)=>s+l.q,0)+" item(ns) · "+(state.type==="Delivery"?"Delivery em "+state.bairro:"Mesa "+state.mesa)+" · Total "+mt(total())+". Só depois de confirmar o pedido é enviado à Kanandzika.";
+  $("confTxt").textContent="Pedido de "+lines().reduce((s,l)=>s+l.q,0)+" item(ns) · "+(state.type==="Delivery"?"Delivery para a sua localização":"Mesa "+state.mesa)+" · Total "+mt(total())+". Só depois de confirmar o pedido é enviado à Kanandzika.";
   $("confBtn").disabled=false;
   openSheet("sh-confirm");
 }
@@ -839,7 +840,7 @@ function sendOrder(){
   const o={
     track_id:(state.type==="Delivery"&&window.crypto&&crypto.randomUUID)?crypto.randomUUID():null,
     id:n,ts,type:state.type,name:user.name,phone:user.phone,
-    bairro:state.type==="Delivery"?state.bairro:"",ref:state.type==="Delivery"?state.ref.trim():"",
+    bairro:state.type==="Delivery"?"Localização no mapa":"",ref:state.type==="Delivery"&&state.loc?"GPS "+state.loc.lat.toFixed(6)+","+state.loc.lng.toFixed(6):"",
     mesa:state.type==="Mesa"?state.mesa:0,
     items:lines().map(l=>({n:l.n,q:l.q,p:l.p})),
     fee:fee(),total:total(),sent:0
@@ -850,8 +851,8 @@ function sendOrder(){
   pend.push({k:"o"+n+"-"+ts,n,ts,p:{track_id:o.track_id,name:o.name,phone:o.phone,type:o.type,bairro:o.bairro,ref:o.ref,mesa:o.mesa,items:o.items,fee:o.fee,total:o.total}});
   save("kz_pending",pend);syncPending();
   cart={};persistCart();
-  state.type=null;state.bairro="";state.ref="";state.mesa=0;
-  $("bairro").value="";$("ref").value="";setType(null);setMesa(0);
+  state.type=null;state.bairro="";state.ref="";state.mesa=0;state.loc=null;state.locSt="";
+  setType(null);setMesa(0);
   toast("Compra confirmada. Pedido enviado!");
   if(o.track_id){openTrack(o.track_id);}else{setNav("Pedidos");openSheet("sh-orders");}
   enviando=false;
@@ -864,7 +865,7 @@ function renderOrders(){
   $("ordersBody").innerHTML=O.map(o=>`<div class="card"><b style="color:var(--cyan);font-size:15px">${Ico("burger")}PEDIDO #${String(o.id).padStart(3,"0")}${o.sent===0?'<span class="tag-pend">A enviar…</span>':''}</b>
   <div class="row"><span>${o.type==="Delivery"?Ico("moto")+"Delivery":Ico("talher")+"Mesa"}</span><span>${Ico("calendario")}${fmtDate(o.ts)}</span></div>
   <div class="row"><span>${Ico("user")}${esc(o.name)}</span><span>${Ico("phone")}${fmtPhone(o.phone)}</span></div>
-  ${o.type==="Delivery"?`<div class="row"><span>${Ico("pin")}Bairro</span><span>${esc(o.bairro)}</span></div>`+(o.ref?`<div class="row"><span>${Ico("alvo")}Referência</span><span>${esc(o.ref)}</span></div>`:""):`<div class="row"><span>${Ico("talher")}Mesa</span><span>${o.mesa}</span></div>`}
+  ${o.type==="Delivery"?`<div class="row"><span>${Ico("pin")}Local</span><span>${esc(o.bairro||"Localização no mapa")}</span></div>`:`<div class="row"><span>${Ico("talher")}Mesa</span><span>${o.mesa}</span></div>`}
   <div class="muted" style="margin-top:8px">${Ico("carrinho")}ITENS</div>
   ${o.items.map(i=>`<div class="row"><span>${i.q}x ${esc(i.n)}</span><span>${mt(i.q*i.p)}</span></div>`).join("")}
   ${o.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Entrega</span><span>${mt(o.fee)}</span></div>`:""}

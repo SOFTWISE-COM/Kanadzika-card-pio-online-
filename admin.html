@@ -632,7 +632,8 @@ function renderOrders(){
   if(!L.length){$('listO').innerHTML='<div class="empty">'+(orders.length?'Nenhum resultado.':'Ainda não há pedidos.')+'</div>';return;}
   $('listO').innerHTML=L.slice(0,200).map(r=>{
     const items=Array.isArray(r.items)?r.items:[],ph=normPhone(r.phone);
-    const where=r.type==='Delivery'?('Bairro: '+esc(r.bairro||'-')+(r.ref?' ('+esc(r.ref)+')':'')):('Mesa '+esc(r.mesa));
+    const gps=/^GPS (-?[\d.]+),(-?[\d.]+)$/.exec(r.ref||'');
+    const where=r.type==='Delivery'?(gps?'Localização do cliente · <a href="https://www.google.com/maps?q='+gps[1]+','+gps[2]+'" target="_blank" rel="noopener">ver no mapa</a>':'Bairro: '+esc(r.bairro||'-')+(r.ref?' ('+esc(r.ref)+')':'')):('Mesa '+esc(r.mesa));
     return '<div class="ord"><div class="oh"><b>#'+String(r.id).padStart(3,'0')+'</b><span class="chip tag">'+esc(r.type)+'</span><span class="dt">'+esc(fmtDate(r.created_at))+'</span></div>'+
       '<div class="on">'+esc(r.name)+' · <a href="https://wa.me/258'+esc(ph)+'" target="_blank" rel="noopener">'+esc(fmtPhone(r.phone))+'</a></div>'+
       '<div class="oi">'+items.map(i=>esc(i.q)+'x '+esc(i.n)).join('<br>')+'</div>'+
