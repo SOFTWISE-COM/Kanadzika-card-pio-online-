@@ -1,7 +1,7 @@
 /* Ajudas partilhadas do rastreio (mapa, distância, tempo estimado) */
 (function () {
-  // >>> LOCALIZAÇÃO DA LOJA FÍSICA (troque pelas coordenadas exatas: no Google Maps, toque longo no local da loja e copie os 2 números) <<<
-  const LOJA = { lat: -26.0417, lng: 32.3250, nome: 'Kanandzika Lanchonete Premium' };
+  // Localização da loja física Kanandzika (latitude, longitude)
+  const LOJA = { lat: -25.993563, lng: 32.423748, nome: 'Kanandzika Lanchonete Premium' };
 
   const rad = d => d * Math.PI / 180;
   function dist(a, b) { // metros em linha reta (haversine)
