@@ -167,6 +167,15 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .btn.stop{background:#c0392b;color:#fff}
 .ic{vertical-align:-4px;margin-right:8px;flex:none}
 .lnk{display:block;text-align:center;color:var(--cyan);font-size:13px;margin-top:10px;text-decoration:none}
+.ntres{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.ntres button{text-align:left;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,20,22,.3);color:#fff;font-size:13px}
+.ntres button em{display:block;font-style:normal;color:var(--muted);font-size:12px}
+.ntprev{white-space:pre-wrap;word-break:break-word;border:1px dashed var(--line);border-radius:14px;padding:12px;font-size:14px;line-height:1.45;max-height:300px;overflow:auto}
+.ntprev b{display:block;color:var(--cyan);margin-bottom:6px}
+.nti{border-top:1px solid var(--line);padding:10px 0}
+.nti .h{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+.nti strong{display:block;margin:4px 0 2px;font-size:14px}
+.nti p{font-size:13px;color:#cfe3e5;white-space:pre-wrap;word-break:break-word;max-height:90px;overflow:hidden}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -222,6 +231,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
     <button class="tab" data-t="users"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6"/></svg>Utilizadores<span class="dot hidden" id="dU"></span></button>
     <button class="tab" data-t="orders"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Pedidos<span class="dot hidden" id="dO"></span></button>
     <button class="tab" data-t="chat"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Chat<span class="dot hidden" id="dC"></span></button>
+    <button class="tab" data-t="nt"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 21a2 2 0 0 0 4 0"/></svg>Notificações</button>
     <button class="tab" data-t="fb"><svg class="i" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Feedback<span class="dot hidden" id="dF"></span></button>
   </div>
   <div id="status"></div>
@@ -319,6 +329,27 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
       <div class="qr" id="qr"></div>
       <div class="sendbar"><textarea id="thIn" rows="1" maxlength="1000" placeholder="Escreva a resposta ao cliente"></textarea><button id="thSend" onclick="enviarResposta()" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button></div>
     </div>
+  </div>
+
+  <!-- AVISOS (notificações para o app) -->
+  <div id="v-nt" class="hidden">
+    <div class="card">
+      <h2>Enviar notificação para o app</h2>
+      <div class="sub">Aparece no sino do app do cliente, em tempo real. Use {nome} para pôr o nome do cliente.</div>
+      <div class="tools"><select id="ntModelo" onchange="ntModelo()"></select></div>
+      <div class="tools">
+        <select id="ntPara" onchange="ntPara()"><option value="one">Um cliente específico</option><option value="all">Todos os clientes</option></select>
+        <input id="ntQ" placeholder="Procurar cliente por nome ou número" oninput="ntPesq()" autocomplete="off">
+      </div>
+      <div id="ntRes" class="ntres"></div>
+      <div class="sum hidden" id="ntSel"></div>
+      <input class="inp" id="ntTit" maxlength="150" placeholder="Título" style="height:46px;margin-top:8px">
+      <textarea class="inp" id="ntMsg" maxlength="3000" rows="10" placeholder="Mensagem" style="height:auto;padding:12px 14px;line-height:1.45;resize:vertical"></textarea>
+      <div class="sub" style="margin:-4px 0 8px">Pré-visualização</div>
+      <div class="ntprev" id="ntPrev"></div>
+      <div class="tools" style="margin:12px 0 0"><button class="mini" id="ntBtn" onclick="enviarNotif()" style="background:var(--cyan);color:#00282d;font-weight:bold"><svg class="i" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Enviar notificação</button></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h2>Enviadas</h2><div class="sub">Do mais recente para o mais antigo</div><div id="listN"></div></div>
   </div>
 
   <!-- FEEDBACK -->
@@ -421,11 +452,12 @@ async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];chats=
 function setTab(t){
   tab=t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  ['home','users','orders','chat','fb'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
+  ['home','users','orders','chat','nt','fb'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
   if(t==='chat'){seen.c=0;setDot('dC',0);renderChats();}
   if(t==='users'){seen.u=0;setDot('dU',0);}
   if(t==='orders'){seen.o=0;setDot('dO',0);}
   if(t==='fb'){seen.f=0;setDot('dF',0);}
+  if(t==='nt'){ntInit();loadNotifs();}
   window.scrollTo({top:0});
 }
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)setTab(b.dataset.t);});
@@ -616,6 +648,67 @@ async function apagarHistorico(){
   if(error)return toast('Erro: '+error.message);
   if(!data||!data.length)return toast('Nada para apagar (ou falta correr o painel.sql no Supabase).');
   toast(num(data.length)+' pedidos apagados.');load(true);
+}
+
+/* ---------- notificações para o app ---------- */
+const MODELOS=[
+ {n:'Em branco',t:'',m:''},
+ {n:'Boas-vindas SILVER',t:'✨ BEM-VINDO - KANANDZIKA LANCHONETE PREMIUM ✨',m:'Olá, {nome}! 👑\n\nObrigado por fazer parte da família Kanandzika. Agora és cliente SILVER!\n\nO que ganhas:\n✅ Entregas mais rápidas\n✅ Descontos exclusivos no app\n✅ Pontos a cada pedido\n✅ Ofertas antes de toda gente\n\nFica em casa, nós vamos até ti. 🛵💨\n\nO teu próximo hambúrguer está a um clique! 🍔\n\nEquipa Kanandzika Premium'},
+ {n:'Pedido a caminho',t:'🛵 O teu pedido está a caminho!',m:'Olá, {nome}! O teu pedido já saiu para entrega. Prepara-te, chegamos já! 🍔'},
+ {n:'Promoção',t:'🔥 Oferta Kanandzika',m:'Olá, {nome}! Hoje temos uma oferta especial só para ti. Abre o app e aproveita! 🍔🍟'}
+];
+let nt={sel:null,list:[]};
+function ntInit(){
+  const m=$('ntModelo');
+  if(!m.options.length){m.innerHTML=MODELOS.map((x,i)=>'<option value="'+i+'">Modelo: '+esc(x.n)+'</option>').join('');m.value='1';ntModelo();}
+  ntPara();
+}
+function ntModelo(){const x=MODELOS[+$('ntModelo').value];$('ntTit').value=x.t;$('ntMsg').value=x.m;ntPrev();}
+function ntPara(){
+  const one=$('ntPara').value==='one';
+  $('ntQ').classList.toggle('hidden',!one);$('ntRes').classList.toggle('hidden',!one);
+  if(!one){nt.sel=null;$('ntSel').classList.add('hidden');}else ntSelShow();
+  ntPrev();
+}
+function ntPesq(){
+  const q=$('ntQ').value.trim().toLowerCase();
+  if(!q){$('ntRes').innerHTML='';return;}
+  const L=users.filter(r=>String(r.name||'').toLowerCase().includes(q)||String(r.phone||'').includes(q)).slice(0,6);
+  $('ntRes').innerHTML=L.length?L.map(r=>'<button onclick="ntEscolher(\''+esc(normPhone(r.phone))+'\')">'+esc(r.name||'Sem nome')+'<em>'+esc(fmtPhone(r.phone))+'</em></button>').join(''):'<div class="empty">Nenhum cliente.</div>';
+}
+function ntEscolher(ph){nt.sel=users.find(r=>normPhone(r.phone)===ph)||null;$('ntQ').value='';$('ntRes').innerHTML='';ntSelShow();ntPrev();}
+function ntSelShow(){const e=$('ntSel');if(nt.sel){e.innerHTML='Para: <b>'+esc(nt.sel.name||'Sem nome')+'</b> · '+esc(fmtPhone(nt.sel.phone));e.classList.remove('hidden');}else e.classList.add('hidden');}
+function ntPersonaliza(t,nome){return String(t).replace(/\{nome\}/gi,(nome||'cliente').trim().split(/\s+/)[0]);}
+function ntPrev(){
+  const nome=$('ntPara').value==='one'&&nt.sel?nt.sel.name:'Silver';
+  $('ntPrev').innerHTML='<b>'+esc(ntPersonaliza($('ntTit').value,nome)||'(sem título)')+'</b>'+esc(ntPersonaliza($('ntMsg').value,nome)||'(sem mensagem)');
+}
+document.addEventListener('input',e=>{if(e.target.id==='ntTit'||e.target.id==='ntMsg')ntPrev();});
+async function enviarNotif(){
+  const todos=$('ntPara').value==='all',tit=$('ntTit').value.trim(),msg=$('ntMsg').value.trim();
+  if(!todos&&!nt.sel)return toast('Escolha o cliente.');
+  if(!tit||!msg)return toast('Escreva o título e a mensagem.');
+  if(todos&&!confirm('Enviar esta notificação a TODOS os clientes ('+users.length+')?'))return;
+  const b=$('ntBtn');b.disabled=true;
+  const row=todos?{phone:null,nome:'Todos os clientes',titulo:tit.replace(/\{nome\}/gi,'').trim()||tit,mensagem:msg.replace(/\{nome\}/gi,'cliente')}
+    :{phone:normPhone(nt.sel.phone),nome:nt.sel.name||null,titulo:ntPersonaliza(tit,nt.sel.name),mensagem:ntPersonaliza(msg,nt.sel.name)};
+  const {error}=await sb.from('notificacoes').insert(row);
+  b.disabled=false;
+  if(error)return toast(/relation|does not exist|schema cache/i.test(error.message)?'Falta correr o notificacoes.sql no Supabase.':'Erro: '+error.message);
+  toast('Notificação enviada'+(todos?' a todos.':' a '+(nt.sel.name||'cliente')+'.'));
+  loadNotifs();
+}
+async function loadNotifs(){
+  const {data,error}=await sb.from('notificacoes').select('*').order('id',{ascending:false}).limit(50);
+  if(error){$('listN').innerHTML='<div class="empty">'+(/relation|does not exist|schema cache/i.test(error.message)?'Falta correr o notificacoes.sql no Supabase.':esc(error.message))+'</div>';return;}
+  nt.list=data||[];
+  $('listN').innerHTML=nt.list.length?nt.list.map(r=>'<div class="nti"><div class="h"><span>Para: '+esc(r.phone?(r.nome||'')+' · '+fmtPhone(r.phone):'Todos os clientes')+'</span><span>'+esc(fmtDate(r.created_at))+'</span></div><strong>'+esc(r.titulo)+'</strong><p>'+esc(r.mensagem)+'</p><button class="ib bad" onclick="apagarNotif('+Number(r.id)+')" title="Apagar"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>').join(''):'<div class="empty">Ainda não enviou notificações.</div>';
+}
+async function apagarNotif(id){
+  if(!confirm('Apagar esta notificação? Também deixa de aparecer no app do cliente.'))return;
+  const {error}=await sb.from('notificacoes').delete().eq('id',id);
+  if(error)return toast('Erro: '+error.message);
+  loadNotifs();
 }
 
 /* ---------- feedback ---------- */
