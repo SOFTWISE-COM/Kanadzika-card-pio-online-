@@ -14,6 +14,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
+:root{--sab:env(safe-area-inset-bottom,0px)}
+@media (display-mode:standalone),(display-mode:fullscreen){:root{--sab:max(env(safe-area-inset-bottom,0px),24px)}}
+
 *{
   box-sizing:border-box;
   margin:0;
@@ -155,7 +158,7 @@ button{
 
 .version{
   position:absolute;
-  bottom:calc(16px + env(safe-area-inset-bottom));
+  bottom:calc(16px + var(--sab));
   font-size:11px;
   color:rgba(255,255,255,.55);
 }
@@ -178,7 +181,7 @@ button{
 .intro-button{
   position:absolute;
   left:50%;
-  bottom:calc(95px + env(safe-area-inset-bottom));
+  bottom:calc(95px + var(--sab));
   transform:translateX(-50%);
   width:82%;
   max-width:360px;
@@ -202,7 +205,7 @@ button{
 .dots{
   position:absolute;
   left:50%;
-  bottom:calc(164px + env(safe-area-inset-bottom));
+  bottom:calc(164px + var(--sab));
   transform:translateX(-50%);
   display:flex;
   gap:9px;
@@ -274,7 +277,7 @@ button{
     100dvh -
     35px -
     env(safe-area-inset-top) -
-    env(safe-area-inset-bottom)
+    var(--sab)
   );
   padding:25px 20px;
   border-radius:28px;
@@ -587,7 +590,7 @@ button{
 .home-bottom{
   position:absolute;
   left:0;
-  bottom:env(safe-area-inset-bottom);
+  bottom:var(--sab);
   width:100%;
   height:65px;
   display:flex;
@@ -635,11 +638,11 @@ button{
   }
 
   .intro-button{
-    bottom:calc(78px + env(safe-area-inset-bottom));
+    bottom:calc(78px + var(--sab));
   }
 
   .dots{
-    bottom:calc(140px + env(safe-area-inset-bottom));
+    bottom:calc(140px + var(--sab));
   }
 
   .login-logo{
@@ -695,12 +698,12 @@ button{
 /* INSTALAR APP / AVISOS */
 .install-btn{
   position:absolute;left:50%;transform:translateX(-50%);
-  bottom:calc(30px + env(safe-area-inset-bottom));
+  bottom:calc(30px + var(--sab));
   width:82%;max-width:360px;height:46px;border-radius:26px;
   border:1.5px solid var(--cyan);background:rgba(0,48,51,.85);
   color:#fff;font-size:15px;font-weight:700;z-index:6;
 }
-#splash .install-btn{bottom:calc(52px + env(safe-area-inset-bottom))}
+#splash .install-btn{bottom:calc(52px + var(--sab))}
 .install-btn.hidden{display:none}
 .toast{
   position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top));

@@ -8,6 +8,9 @@
 <title>Painel Kanandzika</title>
 <link rel="icon" type="image/png" href="assets/icon-192.png">
 <style>
+:root{--sab:env(safe-area-inset-bottom,0px)}
+@media (display-mode:standalone),(display-mode:fullscreen){:root{--sab:max(env(safe-area-inset-bottom,0px),24px)}}
+
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#062f35;--card:#0a4248;--line:#15575e;--cyan:#00e5ff;--text:#fff;--muted:#9bb7ba}
 body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);min-height:100vh}
@@ -76,7 +79,7 @@ button{cursor:pointer}
 #ent .eh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
 #ent .eh b{font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #entMap{flex:1;min-height:200px;background:#0a4248}
-#ent .eb{padding:14px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+#ent .eb{padding:14px 16px calc(14px + var(--sab));border-top:1px solid var(--line)}
 #entEta{font-size:22px;font-weight:bold;color:var(--cyan);margin-bottom:4px}
 #entSub{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:10px}
 .eg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
