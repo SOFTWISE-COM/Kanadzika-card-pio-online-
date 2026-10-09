@@ -211,10 +211,11 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .msg.sup b{display:block;font-size:11px;color:var(--cyan);margin-bottom:2px}
 .msg.auto{opacity:.85;font-style:italic}
 .chat-empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;padding:20px}
-.chat-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + var(--sab));border-top:1px solid #15575e;background:var(--bg)}
+.chat-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(14px + var(--sab));border-top:1px solid #15575e;background:var(--bg)}
 .chat-bar textarea{flex:1;min-height:46px;max-height:110px;border:1.5px solid var(--cyan);border-radius:16px;background:rgba(0,20,22,.3);color:#fff;padding:12px;font:inherit;font-size:14px;outline:0;resize:none}
 .chat-bar button{width:46px;height:46px;border:0;border-radius:50%;background:var(--cyan);color:#00282d;display:grid;place-items:center;flex:none}
 .chat-bar button:disabled{opacity:.5}
+.kb .chat-bar{padding-bottom:10px}
 .chat-bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 </style>
 <script>
@@ -1142,6 +1143,13 @@ async function sendChat(){
   // a resposta automática chega em instantes
   setTimeout(async()=>{await fetchChat();const u=chat.msgs[chat.msgs.length-1];if(u&&u.sender!=="cliente"&&chatOpen())save("kz_chat_seen",u.id);chatBadge();if(chatOpen())paintChat();},1200);
 }
+/* com o teclado aberto, o campo cola ao teclado; fechado, respeita a barra do telemóvel */
+(function(){
+  const base=window.innerHeight;
+  const f=()=>{const vv=window.visualViewport,alt=vv?vv.height:window.innerHeight;document.documentElement.classList.toggle("kb",alt<base-120);};
+  if(window.visualViewport)window.visualViewport.addEventListener("resize",f);
+  window.addEventListener("resize",f);
+})();
 $("chatIn").addEventListener("input",function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,110)+"px";});
 $("chatIn").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&innerWidth>700){e.preventDefault();sendChat();}});
 
