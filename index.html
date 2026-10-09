@@ -713,6 +713,15 @@ button{
   color:#fff;font-size:14px;text-align:center;z-index:99;transition:.3s;
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.foto-pick{display:flex;flex-direction:column;align-items:center;gap:8px;margin:2px 0 14px}
+.foto-btn{position:relative;width:92px;height:92px;border-radius:50%;border:2px dashed var(--cyan,#00e5ff);background:rgba(0,229,255,.08);color:#9bb7ba;display:grid;place-items:center;overflow:hidden;padding:0;cursor:pointer}
+.foto-btn img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.foto-btn.ok{border-style:solid}
+.foto-btn.ok img{display:block}
+.foto-btn svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.foto-btn.ok svg{display:none}
+.foto-cam{position:absolute;right:-2px;bottom:-2px}
+.foto-hint{font-size:12px;color:#9bb7ba;text-align:center}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -932,6 +941,15 @@ button{
         Crie a sua conta Kanandzika
       </div>
 
+      <div class="foto-pick">
+        <button type="button" class="foto-btn" id="fotoBtn" onclick="document.getElementById('fotoInput').click()" aria-label="Escolher foto de perfil">
+          <img id="fotoImg" alt="">
+          <svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+        </button>
+        <input id="fotoInput" type="file" accept="image/*" hidden>
+        <span class="foto-hint" id="fotoHint">Toque para escolher a sua foto de perfil</span>
+      </div>
+
 
       <div class="field">
 
@@ -1054,6 +1072,7 @@ button{
 
 <div id="toast" class="toast"></div>
 
+<script src="foto.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
@@ -1207,6 +1226,17 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const phoneEmail=p=>p+'@kanandzika.app';
 const $v=id=>document.getElementById(id).value;
 
+let fotoSel=null;
+document.getElementById("fotoInput").addEventListener("change",async function(e){
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  try{
+    fotoSel=await Foto.preparar(f);
+    document.getElementById("fotoImg").src=fotoSel.dataUrl;
+    document.getElementById("fotoBtn").classList.add("ok");
+    document.getElementById("fotoHint").textContent="Toque para trocar a foto";
+  }catch(err){fotoSel=null;toast(err.message||"Não foi possível usar essa imagem.");}
+});
+
 async function doRegister(){
   const name=$v("registerName").trim();
   const phone=normPhone($v("registerPhone"));
@@ -1215,10 +1245,16 @@ async function doRegister(){
   if(!/^\d{9}$/.test(phone))return toast("Número de telemóvel inválido (9 dígitos).");
   if(pass.length<6)return toast("A senha deve ter pelo menos 6 caracteres.");
   if(pass!==$v("confirmPassword"))return toast("As senhas não coincidem.");
+  if(!fotoSel)return toast("Escolha a sua foto de perfil.");
   if(!document.getElementById("terms").checked)return toast("Aceite os Termos de Uso para continuar.");
   const {error}=await sb.auth.signUp({email:phoneEmail(phone),password:pass,options:{data:{name,phone}}});
   if(error)return toast(/registered|already/i.test(error.message)?"Este número já tem conta. Toque em Entrar.":"Erro: "+error.message);
-  localStorage.setItem("kz_user",JSON.stringify({name,phone}));
+  // envia a foto; se falhar agora, tenta outra vez dentro do app
+  let avatar="";
+  try{avatar=await Foto.enviar(sb,fotoSel.blob);}
+  catch(e){try{localStorage.setItem("kz_avatar_pending","1");}catch(_){}}
+  try{localStorage.setItem("kz_avatar",JSON.stringify(fotoSel.dataUrl));}catch(_){}
+  localStorage.setItem("kz_user",JSON.stringify({name,phone,avatar}));
   goHome();
 }
 
@@ -1228,7 +1264,9 @@ async function doLogin(){
   const {data,error}=await sb.auth.signInWithPassword({email:phoneEmail(phone),password:pass});
   if(error)return toast("Número ou senha incorretos.");
   const name=(data.user.user_metadata&&data.user.user_metadata.name)||"Cliente";
-  localStorage.setItem("kz_user",JSON.stringify({name,phone}));
+  const avatar=(data.user.user_metadata&&data.user.user_metadata.avatar_url)||"";
+  try{if(!avatar)localStorage.removeItem("kz_avatar");}catch(_){}
+  localStorage.setItem("kz_user",JSON.stringify({name,phone,avatar}));
   goHome();
 }
 

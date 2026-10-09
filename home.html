@@ -187,6 +187,12 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 @keyframes addPulse{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.35) rotate(90deg)}100%{transform:scale(1) rotate(0)}}
 .cart-count.bump{animation:badgePop .45s ease}
 .fly{position:fixed;z-index:100;pointer-events:none;font-size:22px;transition:transform .6s cubic-bezier(.5,-.3,.7,.4),opacity .6s}
+.profile-photo{overflow:hidden}
+.profile-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar-big{width:96px;height:96px;border-radius:50%;margin:6px auto 4px;border:3px solid var(--cyan);background:#0a4248;overflow:hidden;display:grid;place-items:center}
+.avatar-big img{width:100%;height:100%;object-fit:cover}
+.avatar-big svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:1.8}
+.foto-link{display:block;margin:0 auto 14px;background:none;border:0;color:var(--cyan);font-size:13px;font-weight:bold}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -615,6 +621,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="rastreio.js"></script>
+<script src="foto.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://uuuibhgbwqlbylaijwuh.supabase.co";
@@ -839,8 +846,39 @@ function renderOrders(){
 }
 
 /* ---------- perfil ---------- */
+function avatarSrc(){return load("kz_avatar","")||(user&&user.avatar)||"";}
+function paintAvatar(){
+  const src=avatarSrc(); if(!src)return;
+  const el=document.querySelector(".profile-photo");
+  if(el){el.innerHTML="";const im=document.createElement("img");im.alt="";im.src=src;el.appendChild(im);}
+}
+function trocarFoto(){
+  let inp=document.getElementById("fotoNova");
+  if(!inp){inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.id="fotoNova";inp.hidden=true;document.body.appendChild(inp);
+    inp.addEventListener("change",async e=>{
+      const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
+      try{
+        const r=await Foto.preparar(f);
+        save("kz_avatar",r.dataUrl);paintAvatar();renderProfile();
+        try{const url=await Foto.enviar(sb,r.blob);user.avatar=url;save("kz_user",user);localStorage.removeItem("kz_avatar_pending");toast("Foto atualizada");}
+        catch(err){localStorage.setItem("kz_avatar_pending","1");toast("Foto guardada neste telemóvel. Vai ser enviada quando houver ligação.");}
+      }catch(err){toast(err.message||"Não foi possível usar essa imagem.");}
+    });}
+  inp.click();
+}
+// se o envio da foto falhou no cadastro, tenta de novo
+async function reenviarFoto(){
+  if(!localStorage.getItem("kz_avatar_pending"))return;
+  try{
+    const d=load("kz_avatar","");if(!d)return;
+    const blob=await (await fetch(d)).blob();
+    const url=await Foto.enviar(sb,blob);
+    user.avatar=url;save("kz_user",user);localStorage.removeItem("kz_avatar_pending");
+  }catch(e){}
+}
 function renderProfile(){
-  $("profileBody").innerHTML=`<div class="card"><div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="logout()">Sair da conta</button>`;
+  const src=avatarSrc();
+  $("profileBody").innerHTML=`<div class="avatar-big">${src?`<img src="${src}" alt="">`:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'}</div><button class="foto-link" onclick="trocarFoto()">${src?"Alterar foto":"Adicionar foto"}</button><div class="card"><div class="row"><span>👤 Nome</span><span>${esc(user.name)}</span></div><div class="row"><span>📞 Telefone</span><span>${fmtPhone(user.phone)}</span></div></div><button class="btn alt" onclick="logout()">Sair da conta</button>`;
 }
 function logout(){const go=()=>{localStorage.removeItem("kz_session");localStorage.removeItem("kz_user");location.replace("index.html");};try{sb.auth.signOut().then(go,go);}catch(e){go();}}
 
@@ -970,6 +1008,8 @@ function closeTrack(){stopTrack();closeSheets();}
 
 syncPending();
 markProducts();
+paintAvatar();
+reenviarFoto();
 if(user){
   $("hello").textContent="Olá, "+user.name.trim().split(/\s+/)[0];
   persistCart();
