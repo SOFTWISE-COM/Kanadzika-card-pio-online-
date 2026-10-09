@@ -751,9 +751,9 @@ function setType(t){
 }
 function renderLoc(){
   const st=state.locSt,el=$("locBox");if(!el)return;
-  if(state.loc)el.innerHTML=`<b>${Ico("pin")}Localização obtida</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">O entregador vai até ao ponto onde está agora. Confirme que está no local da entrega.</div><button class="btn alt" onclick="pedirLoc()">Atualizar localização</button>`;
+  if(state.loc)el.innerHTML=`<b>${Ico("pin")}Localização ativada</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">O entregador vai até ao ponto onde está agora. Confirme que está no local da entrega. Já pode prosseguir com o pedido.</div><button class="btn alt" onclick="pedirLoc()">Ativar minha localização</button>`;
   else if(st==="busy")el.innerHTML=`<b>${Ico("pin")}A obter a sua localização…</b><div class="muted" style="margin-top:6px">Permita o acesso à localização quando o telemóvel perguntar.</div>`;
-  else el.innerHTML=`<b>${Ico("pin")}Localização da entrega</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">${st==="erro"?"Não foi possível obter a localização. Ative a localização do telemóvel e tente de novo.":"Usamos o mapa para chegar até si, sem escolher bairro."}</div><button class="btn" onclick="pedirLoc()">Usar a minha localização</button>`;
+  else el.innerHTML=`<b>${Ico("pin")}Localização da entrega</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">${st==="erro"?"Não foi possível obter a localização. Ative a localização do telemóvel e tente de novo.":"Usamos o mapa para chegar até si, sem escolher bairro."}</div><button class="btn" onclick="pedirLoc()">Ativar minha localização</button>`;
 }
 function pedirLoc(){
   if(!navigator.geolocation){state.locSt="erro";renderLoc();return;}

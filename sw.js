@@ -1,4 +1,4 @@
-const CACHE='kanandzika-v21';
+const CACHE='kanandzika-v22';
 const FILES=['./','index.html','home.html','manifest.json','rastreio.js','icones.js','perfil.js','foto.js','assets/logo.png','assets/splash.jpg','assets/intro1.png','assets/intro2.png','assets/batata.png','assets/icon-192.png','assets/icon-512.png','assets/icon-maskable-512.png','assets/apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(FILES.map(f=>fetch(f,{redirect:'follow'}).then(r=>{if(r.ok&&!r.redirected)return c.put(f,r)}).catch(()=>{})))).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});
