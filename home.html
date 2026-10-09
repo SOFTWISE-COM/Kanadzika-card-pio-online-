@@ -217,6 +217,14 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 .chat-bar button:disabled{opacity:.5}
 .kb .chat-bar{padding-bottom:10px}
 .chat-bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.search{position:relative}
+.search .clr{width:26px;height:26px;border:0;border-radius:50%;background:#15575e;color:#fff;display:none;place-items:center;flex:none;padding:0}
+.search .clr.on{display:grid}
+.search input[type=search]::-webkit-search-cancel-button,.search input[type=search]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
+.search .clr svg{width:14px;height:14px;color:#fff}
+.noresult{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;line-height:1.6;padding:26px 10px;background:#0a4248;border:1px dashed #15575e;border-radius:16px}
+.noresult b{display:block;color:#fff;font-size:14px;margin-bottom:4px}
+.product mark{background:rgba(0,229,255,.25);color:inherit;border-radius:3px;padding:0 1px}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -346,7 +354,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 <circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
 </svg>
-<input id="search" placeholder="O que você deseja comer?">
+<input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="O que você deseja comer?"><button class="clr" id="searchClr" type="button" aria-label="Limpar pesquisa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
 </div>
 
 <div class="section-title"><h3>Categorias</h3><button onclick="showAll()">Ver tudo</button></div>
@@ -359,7 +367,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 <button class="category"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.5 5 5.5.8-4 4 1 5.7-5-2.7-5 2.7 1-5.7-4-4 5.5-.8L12 3Z"/></svg><span>Promos</span></button>
 </div>
 
-<div class="section-title"><h3>Mais pedidos</h3><button onclick="showAll()">Ver tudo</button></div>
+<div class="section-title"><h3 id="prodTitle">Mais pedidos</h3><button onclick="showAll()">Ver tudo</button></div>
 
 <div class="products" id="products">
 <article class="product" data-name="Hambúrguer simples">
@@ -952,18 +960,49 @@ slides.addEventListener("touchend",e=>{
   let x=e.changedTouches[0].clientX-startX;
   if(Math.abs(x)>45)slideTo(index+(x<0?1:-1));
 });
-document.querySelectorAll(".category").forEach(btn=>{
+/* ---------- pesquisa e categorias ---------- */
+const CAT={hs:"lanches",hc:"lanches",hd:"lanches",so:"lanches",sp:"lanches",sr:"lanches",sc:"lanches",bt:"porcoes",rf:"bebidas"};
+const CATNOME={lanches:"Lanches",porcoes:"Porções",bebidas:"Bebidas",sobremesas:"Sobremesas",promos:"Promos"};
+const CATKEY=["lanches","porcoes","bebidas","sobremesas","promos"];
+// termos extra que também encontram o item (ex.: "lanche", "bebida", "pao")
+const SINONIMOS={lanches:"lanche sanduiche sandes hamburguer burger",porcoes:"porcao batata fritas acompanhamento",bebidas:"bebida refrigerante refresco sumo agua cola"};
+const sem=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+let catAtiva=null;
+document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
+products.forEach(p=>{
+  const b=p.querySelector(".add"),m=b&&(b.getAttribute("onclick")||"").match(/'(\w+)'/);
+  p.dataset.cat=m&&CAT[m[1]]||"";
+  p.dataset.busca=sem(p.dataset.name+" "+(SINONIMOS[p.dataset.cat]||"")+" "+(p.querySelector(".price")?p.querySelector(".price").textContent:""));
+});
+function filtrar(){
+  const termos=sem(search.value).split(/\s+/).filter(Boolean);
+  let n=0;
+  products.forEach(p=>{
+    const ok=(!catAtiva||p.dataset.cat===catAtiva)&&termos.every(t=>p.dataset.busca.includes(t));
+    p.style.display=ok?"block":"none";if(ok)n++;
+  });
+  $("searchClr").classList.toggle("on",!!search.value);
+  const box=$("products");let nr=box.querySelector(".noresult");
+  if(!n){
+    if(!nr){nr=document.createElement("div");nr.className="noresult";box.appendChild(nr);}
+    const alvo=search.value.trim();
+    nr.innerHTML=alvo?`<b>Nenhum item encontrado</b>Não encontramos "${esc(alvo)}"${catAtiva?" em "+CATNOME[catAtiva]:""}. Tente outro nome.`:`<b>Em breve</b>Ainda não há itens em ${CATNOME[catAtiva]}.`;
+  }else if(nr)nr.remove();
+  $("prodTitle").textContent=search.value.trim()?(n+(n===1?" resultado":" resultados")):(catAtiva?CATNOME[catAtiva]:"Mais pedidos");
+}
+document.querySelectorAll(".category").forEach((btn,i)=>{
   btn.onclick=()=>{
+    const k=CATKEY[i],ja=btn.classList.contains("active")&&catAtiva===k;
     document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
-    btn.classList.add("active");
+    if(ja){catAtiva=null;}else{btn.classList.add("active");catAtiva=k;}
+    filtrar();
   };
 });
-search.oninput=()=>{
-  let q=search.value.toLowerCase();
-  products.forEach(p=>p.style.display=p.dataset.name.toLowerCase().includes(q)?"block":"none");
-};
+search.oninput=filtrar;
+search.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();search.blur();}});
+$("searchClr").onclick=()=>{search.value="";filtrar();search.focus();};
 function notify(){toast("Você tem 3 novas notificações.");}
-function showAll(){search.value="";search.oninput();toast("A mostrar todas as opções.");}
+function showAll(){search.value="";catAtiva=null;document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));filtrar();toast("A mostrar todas as opções.");}
 function nav(el,name){
   document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
   el.classList.add("active");
