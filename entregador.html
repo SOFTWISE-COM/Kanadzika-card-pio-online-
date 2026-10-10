@@ -124,6 +124,7 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 
 /* ---------- mapa e painel inferior ---------- */
 .leaflet-container{font-family:inherit;background:#0a1d20}
+.kz-tiles{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55)}
 .leaflet-top.leaflet-left{top:calc(var(--top) + var(--sat))}
 .leaflet-control-attribution{background:rgba(4,37,42,.7)!important;color:#7fa3a6!important;font-size:9px!important}
 .leaflet-control-attribution a{color:#9fc3c6!important}
@@ -626,7 +627,7 @@ function divIcon(html,s){return L.divIcon({className:'',html,iconSize:[s,s],icon
 function initMapa(){
   if(map)return;
   map=L.map('map',{zoomControl:false,attributionControl:true}).setView([LOJA.lat,LOJA.lng],14);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'kz-tiles',attribution:'© OpenStreetMap'}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
   M.store=L.marker([LOJA.lat,LOJA.lng],{icon:divIcon(`<div class="pn store">${I('store','l')}</div>`,46),zIndexOffset:500}).addTo(map);
   map.on('click',()=>{if(S.sel){S.sel=null;paintSheet();paintMapa();}});
