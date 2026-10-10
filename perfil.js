@@ -222,11 +222,13 @@
       '<div class="p-ban"><div class="bi">' + U('estrela', 'so') + '</div><div class="t"><strong>A sua opinião conta</strong><span>Diga-nos o que podemos melhorar.</span></div><button class="pbtn" onclick="openFeedback()">' + U('estrela') + 'Feedback</button></div>' +
       '<div class="p-menu">' +
       it('pin', 'Meus endereços', "openSheet('sh-addr')") + it('cartao', 'Métodos de pagamento', "openSheet('sh-pay')") +
-      it('sino', 'Notificações', "openSheet('sh-ntf')", n) + it('ajuda', 'Ajuda e suporte', "openSheet('sh-help')") + it('info', 'Sobre a Kanandzika', "openSheet('sh-about')") + '</div>' +
+      it('sino', 'Notificações', "openSheet('sh-ntf')", n) + it('ajuda', 'Ajuda e suporte', "openSheet('sh-help')") + it('info', 'Sobre a Kanandzika', "openSheet('sh-about')") +
+      it('moto', 'Trabalhar como entregador', "usarComoEntregador()") + '</div>' +
       '<button class="pbtn red full p-out" onclick="logout()">' + U('sair') + 'Terminar sessão</button>';
   };
   function it(ic, tx, go, bd) {
     return '<button class="p-it" onclick="' + go + '"><span class="p-ic">' + U(ic, 'so') + '</span><span class="tx">' + tx + '</span>' + (bd ? '<span class="p-bd">' + bd + '</span>' : '') + '<span class="ch">' + U('seta', 'so') + '</span></button>';
   }
+  window.usarComoEntregador = function () { try { localStorage.setItem('kz_modo', 'entregador'); } catch (e) { } location.href = 'entregador.html'; };
   window.notify = function () { openSheet('sh-ntf'); };
 })();

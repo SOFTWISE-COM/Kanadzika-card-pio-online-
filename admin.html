@@ -179,6 +179,47 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .bub{cursor:pointer}
 .rx{display:flex;gap:4px;margin-top:-4px}.rx span{background:#0a4248;border:1px solid var(--line);border-radius:12px;padding:1px 7px;font-size:14px}
 .rxp{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:4px 6px}.rxp button{background:none;border:0;font-size:20px;padding:2px 5px;border-radius:12px}.rxp button.on{background:rgba(0,229,255,.2)}
+/* ---------- entregadores ---------- */
+.chip.bad{color:var(--bad);border-color:var(--bad);background:rgba(255,107,125,.1)}
+.chip.live{color:var(--ok);border-color:var(--ok);background:rgba(61,220,151,.12)}
+.chip.busy{color:var(--c2);border-color:var(--c2);background:rgba(255,138,92,.12)}
+.chip.off{color:var(--muted);border-color:#2d6a71;background:rgba(155,183,186,.08)}
+.sgrow{display:flex;gap:8px;margin:14px 0 12px;flex-wrap:wrap;align-items:center}
+.dr{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+.dr:first-of-type{border-top:0}
+.dr .av{overflow:hidden;width:46px;height:46px}
+.dr .av img{width:100%;height:100%;object-fit:cover}
+.dr .inf em{white-space:normal}
+.dr .nums{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:var(--muted)}
+.dr .nums b{color:#fff;font-size:13px}
+.dr .btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.dr .btns button{height:36px;padding:0 12px;border-radius:11px;border:1px solid var(--cyan);background:rgba(0,229,255,.1);color:var(--cyan);font-size:12.5px;font-weight:bold;display:inline-flex;align-items:center;gap:6px}
+.dr .btns button.ok{border-color:var(--ok);color:var(--ok);background:rgba(61,220,151,.12)}
+.dr .btns button.bad{border-color:var(--bad);color:var(--bad);background:rgba(255,107,125,.08)}
+.dr .btns .dot{margin-left:2px}
+.pendbox{border-color:rgba(255,197,66,.55);background:rgba(255,197,66,.06);margin-bottom:12px}
+.pendbox h2{color:var(--warn)}
+#liveMap{position:relative;z-index:0;width:100%;height:min(64vh,540px);background:#0a4248}
+.lvrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:13px;cursor:pointer}
+.lvrow:first-of-type{border-top:0}
+.lvrow .inf em{white-space:normal}
+.dmark{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-22px);width:max-content}
+.dmark i{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);background:#00e5ff;color:#00282d}
+.dmark.busy i{background:#ff8a5c}
+.dmark span{margin-top:4px;background:#fff;color:#0b2a2e;font:700 11.5px Arial,sans-serif;padding:2px 8px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.4);white-space:nowrap}
+#dv{position:fixed;inset:0;z-index:55;background:var(--bg);display:flex;flex-direction:column}
+#dv .eh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+#dv .eh b{font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dvMap{flex:none;height:38%;min-height:200px;background:#0a4248}
+#dv .dvt{display:flex;gap:8px;padding:10px 14px 0}
+#dv .dvt button{flex:1;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:bold;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+#dv .dvt button.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.12)}
+#dv .dvb{flex:1;min-height:0;overflow-y:auto;padding:12px 14px calc(14px + var(--sab))}
+#dvMsg{display:flex;flex-direction:column;height:100%}
+#dvThr{flex:1;min-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:rgba(0,20,22,.35);border:1px solid var(--line);border-radius:14px}
+.dvk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.dvk div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:11.5px;color:var(--muted)}
+.dvk b{display:block;color:#fff;font-size:17px;margin-bottom:2px}
 </style>
 <script>
 /* Garante que os botões ficam acima da barra de navegação do telemóvel */
@@ -236,6 +277,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
     <button class="tab" data-t="chat"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Chat<span class="dot hidden" id="dC"></span></button>
     <button class="tab" data-t="nt"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 21a2 2 0 0 0 4 0"/></svg>Notificações</button>
     <button class="tab" data-t="fb"><svg class="i" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>Feedback<span class="dot hidden" id="dF"></span></button>
+    <button class="tab" data-t="drv"><svg class="i" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/></svg>Entregadores<span class="dot hidden" id="dD"></span></button>
   </div>
   <div id="status"></div>
 
@@ -365,6 +407,23 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
     </div>
     <div class="card" style="margin-top:12px"><h2>Opiniões recebidas</h2><div class="sub">Do mais recente para o mais antigo</div><div id="listF"></div></div>
   </div>
+
+  <!-- ENTREGADORES -->
+  <div id="v-drv" class="hidden">
+    <div class="kpis" id="drvK"></div>
+    <div class="sgrow">
+      <div class="seg" id="sgD"><button class="on" data-v="team">Equipa</button><button data-v="live">Mapa ao vivo</button></div>
+      <span class="sum" id="drvSum" style="margin:0"></span>
+    </div>
+    <div id="drvTeam">
+      <div class="card pendbox hidden" id="drvPend"><h2>Pedidos de acesso</h2><div class="sub">Pessoas que querem entregar para si. Só entram depois de aprovar.</div><div id="drvPendL"></div></div>
+      <div class="card"><h2>Equipa de entregadores</h2><div class="sub">Ganho por entrega: 50 MT · valores de hoje</div><div id="drvList"></div></div>
+    </div>
+    <div id="drvLive" class="hidden">
+      <div class="card" style="padding:0;overflow:hidden"><div id="liveMap"></div></div>
+      <div class="card" style="margin-top:12px"><h2>Agora</h2><div class="sub">Toque num entregador para ver o trajeto e enviar mensagem</div><div id="liveList"></div></div>
+    </div>
+  </div>
 </section>
 
 <section id="ent" class="hidden">
@@ -379,6 +438,25 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
     </div>
     <a class="lnk" id="entNav" target="_blank" rel="noopener" style="display:none"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg>Abrir rota no Google Maps</a>
     <a class="lnk" id="entWa" target="_blank" rel="noopener" style="display:none"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Falar com o cliente no WhatsApp</a>
+  </div>
+</section>
+
+
+<section id="dv" class="hidden">
+  <div class="eh"><button class="mini" onclick="fecharDrv()"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Voltar</button><b id="dvTitle">Entregador</b><span class="chip off" id="dvChip">Offline</span></div>
+  <div id="dvMap"></div>
+  <div class="dvt"><button data-t="trail" class="on" onclick="dvTab('trail')"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>Trajeto</button><button data-t="msg" onclick="dvTab('msg')"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Mensagens<span class="dot hidden" id="dvDot"></span></button></div>
+  <div class="dvb">
+    <div id="dvTrail">
+      <div class="tools" style="margin:0 0 8px"><select id="dvPer" onchange="dvTrail()"><option value="hoje">Trajeto de hoje</option><option value="ontem">Trajeto de ontem</option><option value="ativa">Só a entrega atual</option></select><button onclick="dvTrail(true)"><svg class="i" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>Atualizar</button></div>
+      <div class="dvk" id="dvK"></div>
+      <div class="sum" id="dvInfo"></div>
+    </div>
+    <div id="dvMsg" class="hidden">
+      <div id="dvThr"></div>
+      <div class="qr" id="dvQr"></div>
+      <div class="sendbar"><textarea id="dvIn" rows="1" placeholder="Escreva ao entregador…" maxlength="1000"></textarea><button id="dvSend" onclick="enviarDrvMsg()" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button></div>
+    </div>
   </div>
 </section>
 
@@ -431,7 +509,7 @@ function setDot(id,n){const e=$(id);e.textContent=n>99?'99+':n;e.classList.toggl
 
 /* ---------- entrar / sair ---------- */
 function showLogin(msg){$('panel').classList.add('hidden');$('login').classList.remove('hidden');$('loginErr').textContent=msg||'';stopRealtime();}
-function showPanel(){$('login').classList.add('hidden');$('panel').classList.remove('hidden');load();startRealtime();}
+function showPanel(){$('login').classList.add('hidden');$('panel').classList.remove('hidden');load();startRealtime();loadDrv();startDrvRealtime();}
 function isAdmin(session){const m=(session&&session.user&&session.user.app_metadata)||{};return m.role==='admin';}
 async function enter(session){
   if(!isAdmin(session)){await sb.auth.signOut();showLogin('Esta conta não tem acesso de administrador.');return;}
@@ -451,18 +529,19 @@ async function doLogin(){
   $('pass').value='';
   await enter(data.session);
 }
-async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];chats=[];reacs=[];known=null;openC=null;showLogin();}
+async function logout(){await sb.auth.signOut();users=[];orders=[];fbs=[];chats=[];reacs=[];drvs=[];dmsgs=[];known=null;openC=null;DV.id=null;$('dv').classList.add('hidden');showLogin();}
 
 /* ---------- separadores ---------- */
 function setTab(t){
   tab=t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  ['home','users','orders','chat','nt','fb'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
+  ['home','users','orders','chat','nt','fb','drv'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
   if(t==='chat'){seen.c=0;setDot('dC',0);renderChats();}
   if(t==='users'){seen.u=0;setDot('dU',0);}
   if(t==='orders'){seen.o=0;setDot('dO',0);}
   if(t==='fb'){seen.f=0;setDot('dF',0);}
   if(t==='nt'){ntInit();loadNotifs();}
+  if(t==='drv'){loadDrv();if(sgD==='live'&&LV.map)setTimeout(()=>LV.map.invalidateSize(),80);}
   window.scrollTo({top:0});
 }
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)setTab(b.dataset.t);});
@@ -638,6 +717,7 @@ function renderOrders(){
       '<div class="on">'+esc(r.name)+' · <a href="https://wa.me/258'+esc(ph)+'" target="_blank" rel="noopener">'+esc(fmtPhone(r.phone))+'</a></div>'+
       '<div class="oi">'+items.map(i=>esc(i.q)+'x '+esc(i.n)).join('<br>')+'</div>'+
       '<div class="ot"><span>'+where+(r.type==='Delivery'?' · Entrega '+mt(r.fee):'')+'</span><b>'+mt(r.total)+'</b></div>'+
+      (r.driver_id?'<div class="on" style="margin:2px 0 6px;color:var(--muted)">Entregador: <b style="color:#fff">'+esc((drvs.find(d=>d.user_id===r.driver_id)||{}).name||'—')+'</b> · '+(r.driver_stage==='entregue'?'entregue':(ETAPA[r.driver_stage]||''))+'</div>':'')+
       '<div class="oa" style="flex-wrap:wrap;gap:6px">'+estadoPag(r)+(r.track_id?'<button class="trkbtn" onclick="abrirEntrega('+Number(r.id)+')">'+ICO('moto')+'Entrega em tempo real</button>':'')+'<button class="ib bad" style="margin-left:auto" onclick="apagarPedido('+Number(r.id)+')" title="Apagar pedido"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>';
   }).join('')+(L.length>200?'<div class="empty">A mostrar 200 de '+num(L.length)+'. Use os filtros ou exporte o CSV.</div>':'');
 }
@@ -721,10 +801,10 @@ function ntPrev(){
   $('ntPrev').innerHTML='<b>'+esc(ntPersonaliza($('ntTit').value,nome)||'(sem título)')+'</b>'+esc(ntPersonaliza($('ntMsg').value,nome)||'(sem mensagem)');
 }
 document.addEventListener('input',e=>{if(e.target.id==='ntTit'||e.target.id==='ntMsg')ntPrev();});
-async function pushAviso(phone,titulo,mensagem,tag,todos){
+async function pushAviso(phone,titulo,mensagem,tag,todos,url){
   try{
     const {data}=await sb.auth.getSession();
-    const r=await fetch('/api/push',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({phone,titulo,mensagem,tag,todos:todos===true})});
+    const r=await fetch('/api/push',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify({phone,titulo,mensagem,tag,todos:todos===true,url})});
     const j=await r.json().catch(()=>({}));
     if(r.status===501)return 'sem-chaves';
     return r.ok&&j.ok?(j.enviadas||0):'erro';
@@ -948,7 +1028,7 @@ function startRealtime(){
       .subscribe();
   }catch(e){}
 }
-function stopRealtime(){if(rt){try{sb.removeChannel(rt);}catch(e){}rt=null;}}
+function stopRealtime(){if(rt){try{sb.removeChannel(rt);}catch(e){}rt=null;}stopDrvRealtime();}
 
 /* ---------- entrega em tempo real ---------- */
 const _ICO={entrega:'<circle cx="7.5" cy="5.5" r="2"/><path d="M7.7 8.8 8.8 15M8 10.2 4.5 12.8M8 10.2l4.3-.9 4-3.8M8.8 15 5.5 21.5M8.8 15l4.2 2.8-.4 3.7"/><path d="M11.5 4.7H22"/><path d="M13.7 4.7a3.3 3.3 0 0 1 6.6 0"/>',moto:'<circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/>',play:'<path d="M7 4l13 8-13 8z"/>',pause:'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>'};
@@ -1052,8 +1132,262 @@ function fecharEntrega(){
 }
 
 
+/* ---------- entregadores ---------- */
+const ATIVAS=['aceite','na_loja','a_caminho'];
+const ETAPA={aceite:'a caminho da lanchonete',na_loja:'na lanchonete',a_caminho:'a caminho do cliente'};
+const LJ=Rastreio.LOJA;
+let drvs=[],dmsgs=[],drvRt=null,sgD='team';
+let LV={map:null,mk:{},lines:{},fit:false};
+let DV={id:null,map:null,mk:{},line:null,trail:[]};
+const SVG_MOTO='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/></svg>';
+const SVG_CASA='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+const inicioHoje=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
+const gpsDe=r=>{const m=/(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/.exec(r&&r.ref||'');return m?{lat:+m[1],lng:+m[2]}:null;};
+const visto=d=>d.loc_at?Rastreio.ago(d.loc_at):'sem sinal';
+const ativaDe=id=>orders.find(o=>o.driver_id===id&&ATIVAS.includes(o.driver_stage));
+const isOnline=d=>d.status==='aprovado'&&d.online&&d.loc_at&&(Date.now()-new Date(d.loc_at))<150000;
+function estadoDrv(d){
+  if(d.status==='pendente')return ['warn','Pendente'];
+  if(d.status==='bloqueado')return ['bad','Bloqueado'];
+  if(ativaDe(d.user_id))return ['busy','Em entrega'];
+  return isOnline(d)?['live','Online']:['off','Offline'];
+}
+function porAtribuir(){
+  const lim=Date.now()-6*3600*1000;
+  return orders.filter(o=>o.type==='Delivery'&&!o.driver_id&&o.entregue!==true&&new Date(o.created_at)>=lim&&o.track_id);
+}
+function drvDoDia(id){
+  const t=inicioHoje();
+  const L=orders.filter(o=>o.driver_id===id&&o.driver_stage==='entregue'&&o.entregue_em&&new Date(o.entregue_em)>=t);
+  return {n:L.length,g:L.reduce((s,o)=>s+(Number(o.ganho)||50),0)};
+}
+async function loadDrv(){
+  const [d,m]=await Promise.all([
+    sb.from('drivers').select('*').order('created_at',{ascending:false}),
+    sb.from('driver_messages').select('*').order('created_at',{ascending:true}).limit(1000)
+  ]);
+  if(d.error){
+    const falta=/relation|does not exist|schema cache/i.test(d.error.message);
+    $('drvList').innerHTML='<div class="empty">'+(falta?'Falta correr o ficheiro <b>entregador.sql</b> no Supabase (SQL Editor).':esc(d.error.message))+'</div>';
+    return;
+  }
+  const antes=new Set(drvs.map(x=>x.user_id));
+  const novos=drvs.length||antes.size?(d.data||[]).filter(x=>!antes.has(x.user_id)&&x.status==='pendente'):[];
+  drvs=d.data||[];if(!m.error)dmsgs=m.data||[];
+  if(novos.length)notify('Novo pedido de entregador: '+(novos[0].name||'sem nome'));
+  renderDrv();
+}
+function renderDrv(){
+  const pend=drvs.filter(d=>d.status==='pendente'),eq=drvs.filter(d=>d.status!=='pendente');
+  setDot('dD',pend.length+dmsgs.filter(m=>m.sender==='entregador'&&!m.lida).length);
+  if($('v-drv').classList.contains('hidden')&&!DV.id)return;
+  const on=eq.filter(isOnline).length,ent=eq.filter(d=>ativaDe(d.user_id)).length,livres=porAtribuir().length;
+  const dia=eq.map(d=>drvDoDia(d.user_id)),n=dia.reduce((s,x)=>s+x.n,0),g=dia.reduce((s,x)=>s+x.g,0);
+  $('drvK').innerHTML=
+    '<div class="kpi"><span>Online agora</span><b class="cy">'+on+'</b><small>'+eq.filter(d=>d.status==='aprovado').length+' na equipa</small></div>'+
+    '<div class="kpi"><span>Em entrega</span><b>'+ent+'</b><small>a levar pedidos</small></div>'+
+    '<div class="kpi"><span>Sem entregador</span><b style="color:'+(livres?'var(--warn)':'#fff')+'">'+livres+'</b><small>'+(livres&&!on?'ninguém online!':'pedidos por aceitar')+'</small></div>'+
+    '<div class="kpi"><span>Entregas hoje</span><b>'+n+'</b><small>a pagar '+mt(g)+'</small></div>';
+  $('drvSum').textContent=pend.length?pend.length+' pedido(s) de acesso por aprovar':'';
+  // pedidos de acesso
+  $('drvPend').classList.toggle('hidden',!pend.length);
+  $('drvPendL').innerHTML=pend.map(d=>linhaDrv(d,true)).join('');
+  // equipa
+  $('drvList').innerHTML=eq.length?eq.map(d=>linhaDrv(d,false)).join(''):'<div class="empty">Ainda não há entregadores. Peça-lhes para abrir o app, escolher «Entregador» e pedir acesso. Os pedidos aparecem aqui para aprovar.</div>';
+  if(sgD==='live')renderLive();
+  if(DV.id)dvRefresh();
+}
+function linhaDrv(d,pend){
+  const [c,t]=estadoDrv(d),dia=drvDoDia(d.user_id),a=ativaDe(d.user_id);
+  const nl=dmsgs.filter(m=>m.driver_id===d.user_id&&m.sender==='entregador'&&!m.lida).length;
+  const ini=esc((d.name||'?').trim().charAt(0).toUpperCase());
+  const id=esc(d.user_id);
+  return '<div class="dr"><div class="av">'+(d.avatar?'<img src="'+esc(d.avatar)+'" alt="">':ini)+'</div><div class="inf"><strong>'+esc(d.name||'Sem nome')+' <span class="chip '+c+'">'+t+'</span></strong>'+
+    '<em>'+esc(d.vehicle||'Moto')+(d.plate?' · '+esc(d.plate):'')+' · <a href="https://wa.me/258'+esc(normPhone(d.phone))+'" target="_blank" rel="noopener" style="color:var(--muted)">'+esc(fmtPhone(d.phone))+'</a></em>'+
+    (pend?'<em>Pediu acesso '+esc(fmtDate(d.created_at))+'</em>':
+      '<em>'+(a?'Pedido #'+a.id+' · '+ETAPA[a.driver_stage]:isOnline(d)?'Último sinal '+visto(d):'Visto '+(d.loc_at?visto(d):'nunca'))+'</em>'+
+      '<div class="nums"><span><b>'+dia.n+'</b> entregas hoje</span><span><b>'+mt(dia.g)+'</b> a receber</span></div>')+
+    '<div class="btns">'+
+      (pend?'<button class="ok" onclick="statusDrv(\''+id+'\',\'aprovado\')">Aprovar</button><button class="bad" onclick="statusDrv(\''+id+'\',\'bloqueado\')">Recusar</button>'
+      :'<button onclick="abrirDrv(\''+id+'\',\'trail\')">'+ICO('moto')+'Trajeto</button><button onclick="abrirDrv(\''+id+'\',\'msg\')"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Mensagem'+(nl?'<span class="dot">'+nl+'</span>':'')+'</button>'+
+        (d.status==='bloqueado'?'<button class="ok" onclick="statusDrv(\''+id+'\',\'aprovado\')">Reativar</button>':'<button class="bad" onclick="statusDrv(\''+id+'\',\'bloqueado\')">Suspender</button>'))+
+    '</div></div></div>';
+}
+async function statusDrv(id,status){
+  const d=drvs.find(x=>x.user_id===id);if(!d)return;
+  const txt={aprovado:'Aprovar '+d.name+' como entregador?',bloqueado:(d.status==='pendente'?'Recusar o pedido de ':'Suspender o acesso de ')+d.name+'?'}[status];
+  if(!confirm(txt))return;
+  const {data,error}=await sb.from('drivers').update(status==='bloqueado'?{status,online:false}:{status}).eq('user_id',id).select('user_id');
+  if(error||!data||!data.length)return toast('Não foi possível gravar: '+(error?error.message:'sem permissão'));
+  d.status=status;if(status==='bloqueado')d.online=false;
+  toast(status==='aprovado'?d.name+' já pode entregar.':'Acesso de '+d.name+' suspenso.');
+  renderDrv();
+}
+/* seleção Equipa / Mapa ao vivo */
+document.getElementById('sgD').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  sgD=b.dataset.v;
+  document.querySelectorAll('#sgD button').forEach(x=>x.classList.toggle('on',x===b));
+  $('drvTeam').classList.toggle('hidden',sgD!=='team');$('drvLive').classList.toggle('hidden',sgD!=='live');
+  if(sgD==='live'){if(!LV.map)LV.map=Rastreio.mapa('liveMap');setTimeout(()=>{LV.map.invalidateSize();LV.fit=false;renderLive();},80);}
+});
+/* mapa ao vivo */
+function marcaDrv(d,busy){
+  return L.divIcon({className:'',iconSize:[0,0],iconAnchor:[0,0],html:'<div class="dmark '+(busy?'busy':'')+'"><i>'+SVG_MOTO+'</i><span>'+esc((d.name||'').split(/\s+/)[0])+'</span></div>'});
+}
+function pinCasa(cor,txt){
+  return L.divIcon({className:'',iconSize:[0,0],iconAnchor:[0,0],html:'<div class="dmark"><i style="background:'+cor+';color:#fff">'+SVG_CASA+'</i>'+(txt?'<span>'+esc(txt)+'</span>':'')+'</div>'});
+}
+function renderLive(){
+  const m=LV.map;if(!m)return;
+  const want=new Map(),pts=[{lat:LJ.lat,lng:LJ.lng}];
+  Rastreio.marcar(m,LV.mk,'loja',LJ,'loja');
+  drvs.filter(isOnline).forEach(d=>{
+    if(d.lat==null)return;
+    const a=ativaDe(d.user_id);
+    want.set('d'+d.user_id,{p:{lat:d.lat,lng:d.lng},ic:marcaDrv(d,!!a),z:1000});pts.push({lat:d.lat,lng:d.lng});
+    if(a){const c=gpsDe(a);if(c){want.set('c'+a.id,{p:c,ic:pinCasa('#ff4357','#'+a.id),z:500});pts.push(c);
+      want.set('L'+d.user_id,{line:[[d.lat,d.lng],[c.lat,c.lng]],cor:'#00e5ff'});}}
+  });
+  porAtribuir().forEach(o=>{const c=gpsDe(o);if(c){want.set('o'+o.id,{p:c,ic:pinCasa('#ffb020','#'+o.id+' livre'),z:400});pts.push(c);}});
+  Object.keys(LV.mk).forEach(k=>{if(k!=='loja'&&!want.has(k)){LV.mk[k].remove();delete LV.mk[k];}});
+  Object.keys(LV.lines).forEach(k=>{if(!want.has(k)){LV.lines[k].remove();delete LV.lines[k];}});
+  want.forEach((w,k)=>{
+    if(w.line){if(LV.lines[k])LV.lines[k].setLatLngs(w.line);else LV.lines[k]=L.polyline(w.line,{color:w.cor,weight:4,opacity:.85,dashArray:'6 8'}).addTo(m);return;}
+    if(LV.mk[k]){LV.mk[k].setLatLng([w.p.lat,w.p.lng]);LV.mk[k].setIcon(w.ic);}else LV.mk[k]=L.marker([w.p.lat,w.p.lng],{icon:w.ic,zIndexOffset:w.z}).addTo(m);
+  });
+  if(!LV.fit){Rastreio.enquadrar(m,pts,true);LV.fit=true;}
+  // lista
+  const on=drvs.filter(d=>d.status==='aprovado'&&(isOnline(d)||ativaDe(d.user_id)));
+  const livres=porAtribuir();
+  $('liveList').innerHTML=(on.length?on.map(d=>{const [c,t]=estadoDrv(d),a=ativaDe(d.user_id);
+    return '<div class="lvrow" onclick="abrirDrv(\''+esc(d.user_id)+'\',\'trail\')"><div class="av" style="width:36px;height:36px;font-size:14px">'+esc((d.name||'?').charAt(0).toUpperCase())+'</div><div class="inf"><strong>'+esc(d.name)+' <span class="chip '+c+'">'+t+'</span></strong><em>'+(a?'Pedido #'+a.id+' · '+ETAPA[a.driver_stage]:'À espera de pedidos')+' · sinal '+visto(d)+'</em></div></div>';}).join(''):'<div class="empty">Nenhum entregador online neste momento.</div>')+
+    (livres.length?'<div class="sum" style="margin-top:12px">Pedidos por aceitar: '+livres.map(o=>'<b>#'+o.id+'</b> ('+Rastreio.ago(o.created_at)+')').join(', ')+'</div>':'');
+}
+/* detalhe do entregador: trajeto + mensagens */
+async function abrirDrv(id,tab){
+  const d=drvs.find(x=>x.user_id===id);if(!d)return;
+  DV.id=id;DV.fit=false;
+  $('dv').classList.remove('hidden');
+  if(!DV.map)DV.map=Rastreio.mapa('dvMap');
+  Object.values(DV.mk).forEach(m=>m.remove());DV.mk={};if(DV.line){DV.line.remove();DV.line=null;}
+  $('dvPer').value='hoje';
+  setTimeout(()=>DV.map.invalidateSize(),150);
+  dvTab(tab||'trail');dvRefresh();dvTrail();
+}
+function fecharDrv(){DV.id=null;$('dv').classList.add('hidden');renderDrv();}
+function dvTab(t){
+  document.querySelectorAll('#dv .dvt button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('dvTrail').classList.toggle('hidden',t!=='trail');$('dvMsg').classList.toggle('hidden',t!=='msg');
+  if(t==='msg'){renderDvMsgs();marcarLidas();}
+  else setTimeout(()=>DV.map&&DV.map.invalidateSize(),50);
+}
+function dvRefresh(){
+  const d=drvs.find(x=>x.user_id===DV.id);if(!d)return;
+  const [c,t]=estadoDrv(d),a=ativaDe(d.user_id);
+  $('dvTitle').textContent=d.name+' · '+(d.vehicle||'Moto')+(d.plate?' '+d.plate:'');
+  $('dvChip').className='chip '+c;$('dvChip').textContent=t;
+  const dia=drvDoDia(d.user_id);
+  $('dvK').innerHTML='<div><b>'+dia.n+'</b>entregas hoje</div><div><b>'+mt(dia.g)+'</b>a receber hoje</div><div><b id="dvKm">'+(DV.km!=null?(DV.km/1000).toFixed(1).replace('.',',')+' km':'—')+'</b>percorridos</div>';
+  $('dvInfo').innerHTML=(a?'Entrega em curso: <b>#'+a.id+'</b> para <b>'+esc(a.name||'cliente')+'</b> · '+ETAPA[a.driver_stage]+'<br>':'')+
+    (d.lat!=null?'Última posição <b>'+visto(d)+'</b>'+(isOnline(d)?'':' (offline)'):'Ainda sem posição.');
+  // posição atual + cliente
+  if(d.lat!=null){const ic=marcaDrv(d,!!a);if(DV.mk.me){DV.mk.me.setLatLng([d.lat,d.lng]);DV.mk.me.setIcon(ic);}else DV.mk.me=L.marker([d.lat,d.lng],{icon:ic,zIndexOffset:1000}).addTo(DV.map);}
+  const c2=a&&gpsDe(a);
+  if(c2){if(DV.mk.cli)DV.mk.cli.setLatLng([c2.lat,c2.lng]);else DV.mk.cli=L.marker([c2.lat,c2.lng],{icon:pinCasa('#ff4357','Cliente')}).addTo(DV.map);}
+  else if(DV.mk.cli){DV.mk.cli.remove();delete DV.mk.cli;}
+  Rastreio.marcar(DV.map,DV.mk,'loja',LJ,'loja');
+  if(!$('dvMsg').classList.contains('hidden'))renderDvMsgs();
+}
+async function dvTrail(forcar){
+  const id=DV.id;if(!id)return;
+  const per=$('dvPer').value,t0=inicioHoje(),ontem=new Date(t0);ontem.setDate(ontem.getDate()-1);
+  const a=ativaDe(id);
+  let q=sb.from('driver_trail').select('lat,lng,at,order_id').eq('driver_id',id).order('at',{ascending:true}).limit(5000);
+  if(per==='hoje')q=q.gte('at',t0.toISOString());
+  else if(per==='ontem')q=q.gte('at',ontem.toISOString()).lt('at',t0.toISOString());
+  else{if(!a){toast('Este entregador não tem entrega em curso.');$('dvPer').value='hoje';return dvTrail();}q=q.eq('order_id',a.id);}
+  const {data,error}=await q;
+  if(DV.id!==id)return;
+  if(error)return $('dvInfo').innerHTML='Falta correr o <b>entregador.sql</b> no Supabase ('+esc(error.message)+').';
+  DV.trail=data||[];
+  let km=0;for(let i=1;i<DV.trail.length;i++){const x=Rastreio.dist(DV.trail[i-1],DV.trail[i]);if(x<2000)km+=x;}
+  DV.km=km;
+  const pts=DV.trail.map(p=>[p.lat,p.lng]);
+  if(DV.line){DV.line.setLatLngs(pts);if(DV.lineBase)DV.lineBase.setLatLngs(pts);}
+  else{DV.lineBase=L.polyline(pts,{color:'#fff',weight:9,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(DV.map);DV.line=L.polyline(pts,{color:'#0a8b92',weight:5,opacity:1,lineCap:'round',lineJoin:'round'}).addTo(DV.map);}
+  if(pts.length){
+    const ini=pts[0];
+    if(DV.mk.ini)DV.mk.ini.setLatLng(ini);else DV.mk.ini=L.circleMarker(ini,{radius:7,color:'#fff',weight:3,fillColor:'#3ddc97',fillOpacity:1}).addTo(DV.map);
+  }
+  const d=drvs.find(x=>x.user_id===id);
+  const fit=pts.map(p=>({lat:p[0],lng:p[1]}));if(d&&d.lat!=null)fit.push({lat:d.lat,lng:d.lng});
+  if(fit.length)Rastreio.enquadrar(DV.map,fit,true);
+  dvRefresh();
+  if(!pts.length)$('dvInfo').innerHTML+='<br>Sem pontos de trajeto neste período.';
+}
+/* mensagens para o entregador */
+const RESP_D=['Há um pedido novo, vá à lanchonete.','Onde está agora?','Pode ligar-me, por favor?','Obrigado, bom trabalho!','Cuidado com o trânsito.'];
+function renderDvMsgs(){
+  const id=DV.id,L=dmsgs.filter(m=>m.driver_id===id),t=$('dvThr');
+  const baixo=t.scrollHeight-t.scrollTop-t.clientHeight<60;
+  t.innerHTML=L.length?L.map(m=>'<div class="bub '+(m.sender==='admin'?'s':'c')+'">'+esc(m.message)+'<small>'+esc(fmtDate(m.created_at))+'</small></div>').join(''):'<div class="empty" style="margin:auto">Ainda não há mensagens. O entregador vê o que escrever aqui no app dele, com aviso no telemóvel.</div>';
+  $('dvQr').innerHTML=RESP_D.map((r,i)=>'<button onclick="dvUsar('+i+')">'+esc(r)+'</button>').join('');
+  if(baixo)t.scrollTop=t.scrollHeight;
+  const nl=dmsgs.filter(m=>m.driver_id===id&&m.sender==='entregador'&&!m.lida).length;
+  $('dvDot').textContent=nl;$('dvDot').classList.toggle('hidden',!nl);
+}
+function dvUsar(i){const t=$('dvIn');t.value=RESP_D[i];t.focus();}
+async function marcarLidas(){
+  const id=DV.id;if(!id)return;
+  const nl=dmsgs.filter(m=>m.driver_id===id&&m.sender==='entregador'&&!m.lida);
+  if(!nl.length)return;
+  nl.forEach(m=>m.lida=true);
+  await sb.from('driver_messages').update({lida:true}).eq('driver_id',id).eq('sender','entregador').eq('lida',false);
+  renderDvMsgs();renderDrv();
+}
+async function enviarDrvMsg(){
+  const id=DV.id,d=drvs.find(x=>x.user_id===id),i=$('dvIn'),txt=i.value.trim();
+  if(!d||!txt)return;
+  $('dvSend').disabled=true;
+  const {data,error}=await sb.from('driver_messages').insert({driver_id:id,sender:'admin',message:txt}).select('*').single();
+  $('dvSend').disabled=false;
+  if(error)return toast(/relation|does not exist|schema cache/i.test(error.message)?'Falta correr o entregador.sql no Supabase.':'Erro: '+error.message);
+  i.value='';
+  if(!dmsgs.some(x=>x.id===data.id))dmsgs.push(data);
+  renderDvMsgs();
+  const pr=await pushAviso(normPhone(d.phone),'Mensagem do painel',txt.slice(0,200),'kz-dm-'+data.id,false,'entregador.html');
+  if(pr==='sem-chaves')toast('Mensagem enviada. Push no telemóvel: faltam as chaves VAPID no Vercel.');
+  else if(pr==='erro')toast('Mensagem enviada ao app. O aviso no telemóvel falhou.');
+}
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='dvIn'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarDrvMsg();}});
+/* tempo real da frota */
+function startDrvRealtime(){
+  stopDrvRealtime();
+  try{
+    drvRt=sb.channel('frota')
+      .on('postgres_changes',{event:'*',schema:'public',table:'drivers'},p=>{
+        if(p.eventType==='DELETE'){drvs=drvs.filter(x=>x.user_id!==(p.old&&p.old.user_id));renderDrv();return;}
+        const n=p.new;if(!n)return;
+        const i=drvs.findIndex(x=>x.user_id===n.user_id);
+        if(i<0){drvs.unshift(n);if(n.status==='pendente')notify('Novo pedido de entregador: '+(n.name||'sem nome'));}
+        else drvs[i]=Object.assign(drvs[i],n);
+        clearTimeout(startDrvRealtime.t);startDrvRealtime.t=setTimeout(renderDrv,300);
+      })
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'driver_messages'},p=>{
+        const m=p.new;if(!m||dmsgs.some(x=>x.id===m.id))return;
+        dmsgs.push(m);
+        if(m.sender==='entregador'){const d=drvs.find(x=>x.user_id===m.driver_id);notify('Mensagem de '+(d?d.name:'entregador')+': '+m.message.slice(0,60));
+          if(DV.id===m.driver_id&&!$('dvMsg').classList.contains('hidden'))marcarLidas();}
+        renderDrv();if(DV.id&&!$('dvMsg').classList.contains('hidden'))renderDvMsgs();
+      })
+      .subscribe();
+  }catch(e){}
+}
+function stopDrvRealtime(){if(drvRt){try{sb.removeChannel(drvRt);}catch(e){}drvRt=null;}}
+
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('login').classList.contains('hidden'))doLogin();});
-setInterval(()=>{if(!$('panel').classList.contains('hidden')&&!document.hidden)load(true);},20000);
+setInterval(()=>{if(!$('panel').classList.contains('hidden')&&!document.hidden){load(true);loadDrv();}},20000);
 init();
 </script>
 </body>

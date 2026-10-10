@@ -843,6 +843,8 @@ async function syncPending(){
       for(const it of q){
         const {error}=await sb.from("orders").insert(it.p);
         if(error)continue;
+        // avisa os entregadores online perto da lanchonete (não bloqueia se falhar)
+        if(it.p&&it.p.track_id){try{fetch("/api/novo-pedido",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({track_id:it.p.track_id}),keepalive:true}).catch(()=>{});}catch(e){}}
         save("kz_pending",load("kz_pending",[]).filter(x=>(x.k||"")!==it.k&&x!==it.p&&JSON.stringify(x.p||x)!==JSON.stringify(it.p)));
         if(it.n!=null){const os=load("kz_orders",[]);const o=os.find(x=>x.id===it.n&&x.ts===it.ts);if(o){o.sent=1;save("kz_orders",os);}}
       }

@@ -636,6 +636,21 @@ button{
   }
 }
 
+
+/* ESCOLHA DE MODO (cliente / entregador) */
+#modo{background:#003f43}
+.modo-card{display:grid;gap:12px}
+.modo-op{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px 14px;border-radius:20px;border:1.5px solid var(--cyan);background:rgba(0,20,22,.25);color:#fff}
+.modo-op:active{background:rgba(8,231,238,.14)}
+.modo-ic{width:52px;height:52px;border-radius:16px;background:rgba(8,231,238,.14);color:var(--cyan);display:grid;place-items:center;flex:none}
+.modo-ic svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.modo-tx{display:block;min-width:0}
+.modo-tx b{display:block;font-size:17px;margin-bottom:3px;color:#fff}
+.modo-tx .modo-sb{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
+.modo-go{margin-left:auto;color:var(--cyan);flex:none}
+.modo-go svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.modo-out{margin-top:14px;text-align:center;font-size:13px;color:var(--muted);text-decoration:underline;background:none;border:0;width:100%}
+
 /* INSTALAR APP / AVISOS */
 .install-btn{
   position:absolute;left:50%;transform:translateX(-50%);
@@ -1020,6 +1035,29 @@ button{
 </section>
 
 
+<section id="modo" class="screen">
+  <img src="assets/batata.png" class="login-bg" alt="Kanandzika">
+  <div class="login-overlay"></div>
+  <img src="assets/logo.png" class="login-logo" alt="Kanandzika">
+  <div class="auth-card">
+    <div class="auth-title" id="modoTit">Como quer usar o app?</div>
+    <div class="auth-subtitle">Pode mudar a qualquer momento no seu perfil.</div>
+    <div class="modo-card">
+      <button class="modo-op" onclick="escolherModo('cliente')">
+        <span class="modo-ic"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></span>
+        <span class="modo-tx"><b>Cliente</b><span class="modo-sb">Peça os lanches e acompanhe a entrega no mapa.</span></span>
+        <span class="modo-go"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </button>
+      <button class="modo-op" onclick="escolherModo('entregador')">
+        <span class="modo-ic"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/></svg></span>
+        <span class="modo-tx"><b>Entregador</b><span class="modo-sb">Receba pedidos perto da lanchonete e ganhe 50 MT por entrega.</span></span>
+        <span class="modo-go"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </button>
+    </div>
+    <button class="modo-out" onclick="modoSair()">Não sou eu. Terminar sessão</button>
+  </div>
+</section>
+
 <div id="toast" class="toast"></div>
 
 <script src="foto.js"></script>
@@ -1073,7 +1111,7 @@ const timer=setInterval(()=>{
 
     setTimeout(()=>{
 
-      if(localStorage.getItem("kz_session")&&localStorage.getItem("kz_user")){location.replace("home.html");return;}
+      if(localStorage.getItem("kz_session")&&localStorage.getItem("kz_user")){location.replace(localStorage.getItem("kz_modo")==="entregador"?"entregador.html":"home.html");return;}
 
       splash.classList.remove("active");
       intro.classList.add("active");
@@ -1188,10 +1226,24 @@ function normPhone(v){
   return d;
 }
 
+let modoTipo="volta";
 function goHome(tipo){
-  try{localStorage.setItem("kz_welcome",tipo||"volta");}catch(e){}
+  modoTipo=tipo||"volta";
   localStorage.setItem("kz_session","1");
+  document.getElementById("modoTit").textContent=tipo==="novo"?"Conta criada! Como quer usar o app?":"Como quer usar o app?";
+  document.getElementById("login").classList.remove("active");
+  document.getElementById("modo").classList.add("active");
+}
+function escolherModo(m){
+  try{localStorage.setItem("kz_modo",m);}catch(e){}
+  if(m==="entregador"){location.href="entregador.html";return;}
+  try{localStorage.setItem("kz_welcome",modoTipo);}catch(e){}
   location.href="home.html";
+}
+function modoSair(){
+  const go=()=>{["kz_session","kz_user","kz_modo"].forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
+    document.getElementById("modo").classList.remove("active");document.getElementById("login").classList.add("active");};
+  try{sb.auth.signOut().then(go,go);}catch(e){go();}
 }
 
 const SUPABASE_URL='https://uuuibhgbwqlbylaijwuh.supabase.co';

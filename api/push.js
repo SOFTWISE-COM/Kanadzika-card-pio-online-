@@ -3,7 +3,7 @@ const db = require('../lib/db');
 
 // POST /api/push   (só o administrador)
 // Cabeçalho: Authorization: Bearer <token da sessão do painel>
-// body: { phone: '84xxxxxxx' | todos: true, titulo, mensagem, tag }
+// body: { phone: '84xxxxxxx' | todos: true, titulo, mensagem, tag, url? }
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ ok: false });
@@ -32,7 +32,9 @@ module.exports = async (req, res) => {
   const { data: subs, error } = await q.limit(5000);
   if (error) return res.status(500).json({ ok: false });
 
-  const payload = JSON.stringify({ title: titulo, body: msg, url: 'home.html', tag: b.tag || undefined });
+  // destino ao tocar na notificação: só páginas do próprio site (ex.: entregador.html)
+  const url = /^[a-z0-9._-]+\.html$/i.test(String(b.url || '')) ? String(b.url) : 'home.html';
+  const payload = JSON.stringify({ title: titulo, body: msg, url, tag: b.tag || undefined });
   const mortas = [];
   let enviadas = 0;
   await Promise.all((subs || []).map(async (s) => {
