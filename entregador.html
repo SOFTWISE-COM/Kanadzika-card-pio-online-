@@ -134,6 +134,8 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 .pn.job::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid var(--coral);animation:ring 1.6s ease-out infinite}
 .pn.job.sel{background:#fff;color:var(--coral);border-color:var(--coral)}
 @keyframes ring{from{transform:scale(.7);opacity:.9}to{transform:scale(1.5);opacity:0}}
+.pn.me{background:var(--cyan);color:#00282d;position:relative}
+.pn.me::after{content:"";position:absolute;inset:-12px;border-radius:50%;background:rgba(0,229,255,.22);animation:halo 2.2s ease-out infinite;z-index:-1}
 .pme{position:relative;width:22px;height:22px;border-radius:50%;background:var(--cyan);border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.5)}
 .pme::after{content:"";position:absolute;inset:-12px;border-radius:50%;background:rgba(0,229,255,.22);animation:halo 2.2s ease-out infinite}
 @keyframes halo{from{transform:scale(.5);opacity:1}to{transform:scale(1.2);opacity:0}}
@@ -274,7 +276,8 @@ const SUPABASE_KEY='sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y';
 const VAPID_PUBLIC='BLzEsIHLFUQy6OfkwGJrT0cjYCETrqeW3lSLxCbDQrKCm6TTDEJIgBKNIr_latecGCcflYEJoacVLiSiPfCqFys';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const GANHO=50;                 // MT por entrega (o valor real gravado vem do entregador.sql)
+const GANHO=50;                 // mínimo por entrega (MT). O valor real = taxa paga pelo cliente (50 MT até 2 km, +10 MT/km extra, máx. 150)
+const ganhoDe=o=>Math.min(150,Math.max(GANHO,Number(o&&o.fee)||GANHO));
 const RAIO=5000;                // metros: "perto da lanchonete"
 const LOJA=Rastreio.LOJA;
 const ATIVAS=['aceite','na_loja','a_caminho'];
@@ -288,7 +291,7 @@ const P={
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
   nav:'<path d="M3 11 21 3l-8 18-2-8-8-2z"/>',
-  store:Rastreio.ICO.loja, moto:Rastreio.ICO.moto, pin:Rastreio.ICO.pin, casa:Rastreio.ICO.casa,
+  store:Rastreio.ICO.loja, moto:Rastreio.ICO.moto, bici:Rastreio.ICO.bici, carro:Rastreio.ICO.carro, ape:Rastreio.ICO.ape, cliente:Rastreio.ICO.cliente, pin:Rastreio.ICO.pin, casa:Rastreio.ICO.casa,
   check:'<path d="M5 12l5 5 9-10"/>', x:'<path d="M6 6l12 12M18 6 6 18"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
@@ -365,7 +368,7 @@ const meuTel=()=>tel9(String(S.user.email||'').split('@')[0]);
 function gateBase(h){const g=$('gate');g.classList.remove('hidden');g.innerHTML='<img class="logo" src="assets/logo.png" alt="Kanandzika">'+h;}
 function gateRegisto(){
   const m=metaUser();
-  gateBase(`<h1>Trabalhe como entregador</h1><p class="sub">Ganhe ${GANHO} MT por cada entrega da Kanandzika. Preencha os dados abaixo e o dono aprova o seu acesso.</p>
+  gateBase(`<h1>Trabalhe como entregador</h1><p class="sub">Ganhe a partir de ${GANHO} MT por entrega, e mais quanto mais longe for (+10 MT por km a partir dos 2 km). Preencha os dados abaixo e o dono aprova o seu acesso.</p>
   <label class="fld"><span>Nome</span><input id="gN" value="${esc(m.name||m.nome||'')}" autocomplete="name"></label>
   <label class="fld"><span>Telemóvel</span><input id="gT" value="${esc(meuTel())}" inputmode="tel" maxlength="12"></label>
   <label class="fld"><span>Meio de transporte</span><select id="gV" onchange="$('gP').parentNode.classList.toggle('hidden',['Bicicleta','A pé'].includes(this.value))"><option>Moto</option><option>Bicicleta</option><option>Carro</option><option>A pé</option></select></label>
@@ -548,7 +551,7 @@ function renderDash(){
   $('v-dash').innerHTML=`
   <div class="me"><div class="av">${av?`<img src="${esc(av)}" alt="">`:I('user','l')}</div>
     <div style="min-width:0"><h2>${esc(d.name||'Entregador')}</h2>
-    <div class="meta"><span>${I('moto','s')}${esc(d.vehicle)}${d.plate?' · '+esc(d.plate):''}</span><span>${I('phone','s')}+258 ${esc(tel9(d.phone))}</span></div></div></div>
+    <div class="meta"><span>${I(Rastreio.veic(d.vehicle),'s')}${esc(d.vehicle)}${d.plate?' · '+esc(d.plate):''}</span><span>${I('phone','s')}+258 ${esc(tel9(d.phone))}</span></div></div></div>
   <div class="go"><button class="btn ${S.online?'on':'off'}" onclick="toggleOnline()">${I('power')}${S.online?'Ficar offline':'Ficar online e receber pedidos'}</button>
   <p class="hint">${S.mine?'Tem uma entrega em curso. Termine-a antes de ficar offline.':S.online?'A partilhar a sua posição. Os pedidos novos aparecem no mapa.':'Fique online para ver pedidos perto da lanchonete.'}</p></div>
   <div class="earn"><div><div class="k">Ganho de hoje</div><div class="v num">${mt(s.g)}<small>MT</small></div></div><div class="r"><b class="num">${s.n}</b>${s.n===1?'entrega':'entregas'}</div></div>
@@ -558,7 +561,7 @@ function renderDash(){
     <div class="st"><div class="k">${I('cash','s')}Últimos 7 dias</div><div class="v num">${mt(s.sem)}<small>MT</small></div></div>
     <div class="st"><div class="k">${I('check','s')}Total de entregas</div><div class="v num">${s.total}</div></div>
   </div>
-  <div class="box"><h3>Ganhos da semana<small>${GANHO} MT por entrega</small></h3>
+  <div class="box"><h3>Ganhos da semana<small>mín. ${GANHO} MT, por distância</small></h3>
     <div class="week">${s.dias.map(x=>`<div class="d ${x.t?'t':''}"><span class="a num">${x.g?mt(x.g):''}</span><div class="b" style="height:${Math.max(4,Math.round(x.g/max*78))}px"></div><span class="l">${x.t?'hoje':x.l}</span></div>`).join('')}</div></div>
   <div class="box"><h3>Últimas entregas</h3>${S.hist.length?S.hist.slice(0,6).map(o=>`<div class="hrow"><span class="ic">${I('check')}</span><div class="t"><b>Pedido #${o.id}</b><span>${esc(first(o.name))} · ${new Date(o.entregue_em).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})} ${hora(o.entregue_em)}</span></div><span class="p num">+${mt(o.ganho||GANHO)}</span></div>`).join(''):`<div class="empty">Ainda não fez entregas. Fique online e aceite o primeiro pedido.</div>`}</div>
   ${perm!=='granted'&&perm!=='denied'?`<div class="push">${I('bell','l')}<p>Ative os avisos para saber de novos pedidos mesmo com o ecrã apagado.</p><button onclick="ativarPush(true).then(ok=>{toast(ok?'Avisos ativados.':'Não foi possível ativar.');renderDash();})">Ativar</button></div>`:''}
@@ -649,19 +652,19 @@ function recentrar(){S.fit='';if(S.pos&&!S.mine&&!S.avail.length&&!S.sel)map.set
 function paintMapa(){
   if(!map)return;
   // eu
-  if(S.pos){if(M.me)M.me.setLatLng([S.pos.lat,S.pos.lng]);else M.me=L.marker([S.pos.lat,S.pos.lng],{icon:divIcon('<div class="pme"></div>',22),zIndexOffset:1000}).addTo(map);}
+  if(S.pos){if(M.me)M.me.setLatLng([S.pos.lat,S.pos.lng]);else M.me=L.marker([S.pos.lat,S.pos.lng],{icon:divIcon('<div class="pn me">'+I(Rastreio.veic(S.drv&&S.drv.vehicle))+'</div>',42),zIndexOffset:1000}).addTo(map);}
   else if(M.me){M.me.remove();M.me=null;}
   // pedidos livres
   const ver=S.online&&!S.mine?S.avail:[];
   const ids=new Set(ver.map(o=>o.id));
   Object.keys(M.jobs).forEach(k=>{if(!ids.has(+k)){M.jobs[k].remove();delete M.jobs[k];}});
   ver.forEach(o=>{const c=coordsDe(o);if(!c)return;
-    const ic=divIcon(`<div class="pn job ${S.sel===o.id?'sel':''}">${I('casa')}</div>`,42);
+    const ic=divIcon(`<div class="pn job ${S.sel===o.id?'sel':''}">${I('cliente')}</div>`,42);
     if(M.jobs[o.id]){M.jobs[o.id].setLatLng([c.lat,c.lng]);M.jobs[o.id].setIcon(ic);}
     else M.jobs[o.id]=L.marker([c.lat,c.lng],{icon:ic,zIndexOffset:300}).on('click',e=>{L.DomEvent.stopPropagation(e);selecionar(o.id);}).addTo(map);});
   // cliente da entrega ativa
   const cm=S.mine&&coordsDe(S.mine);
-  if(cm){const ic=divIcon(`<div class="pn cust">${I('casa')}</div>`,42);if(M.cust){M.cust.setLatLng([cm.lat,cm.lng]);}else M.cust=L.marker([cm.lat,cm.lng],{icon:ic,zIndexOffset:400}).addTo(map);}
+  if(cm){const ic=divIcon(`<div class="pn cust">${I('cliente')}</div>`,42);if(M.cust){M.cust.setLatLng([cm.lat,cm.lng]);}else M.cust=L.marker([cm.lat,cm.lng],{icon:ic,zIndexOffset:400}).addTo(map);}
   else if(M.cust){M.cust.remove();M.cust=null;}
   // pré-visualização loja -> cliente do pedido selecionado
   const so=!S.mine&&S.sel&&S.avail.find(o=>o.id===S.sel),sc=so&&coordsDe(so);
@@ -746,7 +749,7 @@ function paintSheet(){
   b.innerHTML=`<div class="sh-t">${n} ${n===1?'pedido para entregar':'pedidos para entregar'}</div><p class="sh-s">Aceite um pedido para ver a rota até à lanchonete e depois até ao cliente.</p>`+
     S.avail.map(o=>{const c=coordsDe(o),dl=c?d2(LOJA,c)*1.3:null;
       return `<div class="job-c ${S.sel===o.id?'sel':''}" data-job="${o.id}">
-      <div class="job-h"><b>Pedido #${o.id}</b><span class="gain num">+${GANHO} MT</span></div>
+      <div class="job-h"><b>Pedido #${o.id}</b><span class="gain num">+${ganhoDe(o)} MT</span></div>
       <div class="job-l">
         <div>${I('pin','s')}${dl!=null?'Cliente a <b class="num">'+Rastreio.fmtDist(dl)+'</b> da lanchonete':'À espera da localização do cliente'}</div>
         <div>${I('moto','s')}${S.pos?'Você está a <b class="num" data-live="meloja">'+Rastreio.fmtDist(d2(S.pos,LOJA))+'</b> da lanchonete':'A obter a sua posição…'}</div>
@@ -757,7 +760,7 @@ function paintSheet(){
 function etapaIdx(st){return {aceite:0,na_loja:1,a_caminho:2,entregue:3}[st]||0;}
 function ativaHTML(o){
   const st=o.driver_stage,i=etapaIdx(st),c=coordsDe(o),tel=tel9(o.phone);
-  const nodes=[['Aceite','check'],['Na loja','store'],['A caminho','moto'],['Entregue','casa']].map((n,k)=>`<div class="n ${k<i?'d':k===i?'c':''}"><i>${k<i?I('check'):I(n[1])}</i>${n[0]}</div>`).join('');
+  const nodes=[['Aceite','check'],['Na loja','store'],['A caminho',Rastreio.veic(S.drv&&S.drv.vehicle)],['Entregue','cliente']].map((n,k)=>`<div class="n ${k<i?'d':k===i?'c':''}"><i>${k<i?I('check'):I(n[1])}</i>${n[0]}</div>`).join('');
   const titulo={aceite:'Vá à lanchonete',na_loja:'Levante o pedido #'+o.id,a_caminho:'Entregue a '+first(o.name)}[st];
   const sub={
     aceite:'Faltam <b class="num" data-live="dist">…</b> · <b class="num" data-live="min">…</b> até à lanchonete.',
@@ -856,7 +859,7 @@ async function libertar(){
 }
 function concluido(o){
   const s=stats(),div=document.createElement('div');div.className='done';
-  div.innerHTML=`<div class="c"><div class="ck">${I('check')}</div><h2>Entrega concluída</h2><div class="g num">+${GANHO} MT</div><p>Hoje: ${s.n} ${s.n===1?'entrega':'entregas'} · ${mt(s.g)} MT</p><button class="btn" id="dOk">Continuar</button></div>`;
+  div.innerHTML=`<div class="c"><div class="ck">${I('check')}</div><h2>Entrega concluída</h2><div class="g num">+${ganhoDe(o)} MT</div><p>Hoje: ${s.n} ${s.n===1?'entrega':'entregas'} · ${mt(s.g)} MT</p><button class="btn" id="dOk">Continuar</button></div>`;
   $('app').appendChild(div);$('dOk').onclick=()=>{div.remove();};vibra([80,60,80]);
 }
 
@@ -865,9 +868,9 @@ function alertaPedido(o){
   S.pendingAlert=o.id;
   const c=coordsDe(o),d=c?Rastreio.fmtDist(d2(LOJA,c)*1.3):'';
   $('alT').textContent='Novo pedido #'+o.id;
-  $('alS').textContent=(d?d+' da lanchonete · ':'')+'ganha '+GANHO+' MT';
+  $('alS').textContent=(d?d+' da lanchonete · ':'')+'ganha '+ganhoDe(o)+' MT';
   $('alert').classList.add('show');bip();vibra([300,120,300,120,300]);
-  notificar('Novo pedido para entregar',(d?d+' da lanchonete · ':'')+'ganha '+GANHO+' MT','kz-novo-'+o.id);
+  notificar('Novo pedido para entregar',(d?d+' da lanchonete · ':'')+'ganha '+ganhoDe(o)+' MT','kz-novo-'+o.id);
   clearTimeout(alertaPedido.t);alertaPedido.t=setTimeout(()=>$('alert').classList.remove('show'),14000);
   paintAll();
 }

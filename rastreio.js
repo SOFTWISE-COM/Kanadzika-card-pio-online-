@@ -44,20 +44,27 @@
     pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
     entrega: '<circle cx="7.5" cy="5.5" r="2"/><path d="M7.7 8.8 8.8 15M8 10.2 4.5 12.8M8 10.2l4.3-.9 4-3.8M8.8 15 5.5 21.5M8.8 15l4.2 2.8-.4 3.7"/><path d="M11.5 4.7H22"/><path d="M13.7 4.7a3.3 3.3 0 0 1 6.6 0"/>',
     loja: '<path d="M4 9l1.5-5h13L20 9"/><path d="M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 9"/><path d="M5 12v8h14v-8"/><path d="M10 20v-4h4v4"/>',
-    casa: '<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'
+    casa: '<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    bici: '<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9.5 9h5.5l3.5 7.5M9.5 9l2.5 7.5 3-7.5M14 6.5h2.5"/>',
+    carro: '<path d="M3.5 16v-3.5L6 7h12l2.5 5.5V16"/><path d="M3.5 12.5h17"/><circle cx="7.5" cy="16.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/>',
+    ape: '<circle cx="13" cy="4.5" r="2"/><path d="M12 8.5 10 14l3 2 1 5M12 8.5l3 3 3 .5M12 8.5l-3 2-1 3M10 14l-3 6"/>',
+    cliente: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'
   };
-  // tipo: 'drv' (entregador) ou 'cli' (cliente)
-  const pin = t => {
+  // Meio de transporte -> chave do ícone (moto, bici, carro, ape)
+  const veic = v => { v = String(v || '').toLowerCase(); return /bici|bike/.test(v) ? 'bici' : /carro|car|viatura/.test(v) ? 'carro' : /p[eé]$|a p|pe$|pedes/.test(v) ? 'ape' : 'moto'; };
+  // tipo: 'drv' ou 'drv:<meio de transporte>' (entregador) ou 'cli' (cliente)
+  const pin = t0 => {
+    const pt = String(t0).split(':'), t = pt[0], vk = veic(pt.slice(1).join(':'));
     const drv = t === 'drv', loja = t === 'loja';
     if (loja) return L.divIcon({ className: '', iconSize: [44, 44], iconAnchor: [22, 22],
       html: `<div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);background:#ffb020;color:#3b2500">${S(ICO.loja, 26)}</div>` });
     return L.divIcon({ className: '', iconSize: [44, 44], iconAnchor: [22, 22],
-      html: `<div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);background:${drv ? '#00e5ff' : '#ff4357'};color:${drv ? '#00282d' : '#fff'}">${S(drv ? ICO.moto : ICO.casa, 26)}</div>` });
+      html: `<div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.45);background:${drv ? '#00e5ff' : '#ff4357'};color:${drv ? '#00282d' : '#fff'}">${S(drv ? ICO[vk] : ICO.cliente, 26)}</div>` });
   };
   function marcar(m, store, chave, p, tipo) {
     if (!p) return;
     if (store[chave]) store[chave].setLatLng([p.lat, p.lng]);
-    else store[chave] = L.marker([p.lat, p.lng], { icon: pin(tipo), zIndexOffset: tipo === 'drv' ? 1000 : 0 }).addTo(m);
+    else store[chave] = L.marker([p.lat, p.lng], { icon: pin(tipo), zIndexOffset: String(tipo).indexOf('drv') === 0 ? 1000 : 0 }).addTo(m);
   }
   // Desenha a trajetória por estrada entre o entregador (a) e o cliente (b)
   function rota(m, store, e, a, b) {
@@ -85,5 +92,5 @@
       else m.fitBounds(b, { padding: [50, 50], maxZoom: 17 });
     }
   }
-  window.Rastreio = { dist, fmtDist, fmtMin, ago, eta, mapa, marcar, rota, etiqueta, enquadrar, LOJA, S, ICO };
+  window.Rastreio = { veic, dist, fmtDist, fmtMin, ago, eta, mapa, marcar, rota, etiqueta, enquadrar, LOJA, S, ICO };
 })();

@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
     .update({ notificado: true })
     .eq('track_id', tid).eq('type', 'Delivery').eq('notificado', false).is('driver_id', null)
     .gte('created_at', desde)
-    .select('id,total')
+    .select('id,total,fee')
     .limit(1);
   if (error) return res.status(500).json({ ok: false });
   if (!ped || !ped.length) return res.json({ ok: true, enviadas: 0 });
@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
   webpush.setVapidDetails(process.env.VAPID_EMAIL || 'mailto:admin@kanandzika.app', pub, priv);
   const payload = JSON.stringify({
     title: 'Novo pedido para entregar!',
-    body: `Pedido #${ped[0].id} · ganha ${GANHO_ENTREGA} MT · toque para ver no mapa`,
+    body: `Pedido #${ped[0].id} · ganha ${Math.min(150, Math.max(GANHO_ENTREGA, Number(ped[0].fee) || GANHO_ENTREGA))} MT · toque para ver no mapa`,
     url: 'entregador.html', tag: 'kz-novo-' + ped[0].id,
   });
   const mortas = [];

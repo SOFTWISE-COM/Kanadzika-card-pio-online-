@@ -513,7 +513,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
     <div id="deliveryBox" style="display:none">
       <div class="card" id="locBox" style="margin:10px 0 6px"></div>
       <p class="muted" style="margin-top:6px">
-        <svg class="ico"><use href="#i-camiao"/></svg> Taxa de entrega: 50 MT
+        <svg class="ico"><use href="#i-camiao"/></svg> <span id="feeTxt">Taxa de entrega: a partir de 50 MT (conforme a distância)</span>
       </p>
     </div>
 
@@ -619,7 +619,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
   </div>
 </div>
 
-<div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa é 50 MT) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
+<div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa começa em 50 MT e depende da distância) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
 <div class="sheet" id="sh-profile">
 <div class="sh-head">
 <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
@@ -641,6 +641,8 @@ const SUPABASE_URL="https://uuuibhgbwqlbylaijwuh.supabase.co";
 const SUPABASE_KEY="sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const FEE=50;
+const TAR={BASE:50,KM_BASE:2,POR_KM:10,MAX:150};   // MT: 50 até 2 km, +10 MT por km extra (de 0,5 em 0,5 km), máx. 150
+const tarifa=m=>{const km=m/1000;return km<=TAR.KM_BASE?TAR.BASE:Math.min(TAR.MAX,TAR.BASE+Math.ceil((km-TAR.KM_BASE)*2)*(TAR.POR_KM/2));};
 const BAIRROS=["Matola Rio","Thandavanto","Campoane (Xidiminguana)","Belo Horizonte","Bloco 2","Mazambanine","Tedeco","Escola Secundária de Boane","Escola Secundária Joaquim Chissano","Boane (Vila)"];
 const PRODUCTS={
   hs:{n:"Hambúrguer simples",p:120,img:"assets/intro1.png"},
@@ -683,7 +685,7 @@ function lines(){
   return Object.keys(cart).filter(id=>PRODUCTS[id]&&cart[id]>0).map(id=>({id,n:PRODUCTS[id].n,q:cart[id],p:PRODUCTS[id].p,img:PRODUCTS[id].img}));
 }
 const subtotal=()=>lines().reduce((s,l)=>s+l.q*l.p,0);
-const fee=()=>state.type==="Delivery"?FEE:0;
+const fee=()=>state.type==="Delivery"?(state.fee||FEE):0;
 const total=()=>subtotal()+fee();
 function persistCart(){
   save("kz_cart",cart);
@@ -772,15 +774,27 @@ function renderLoc(){
   else el.innerHTML=`<b>${Ico("pin")}Localização da entrega</b><div class="muted" style="margin:6px 0 10px;line-height:1.45">${st==="erro"?"Não foi possível obter a localização. Ative a localização do telemóvel e tente de novo.":"Usamos o mapa para chegar até si, sem escolher bairro."}</div><button class="btn" onclick="pedirLoc()">Ativar minha localização</button>`;
 }
 let _cdT=null;
+async function calcFee(){
+  const loc=state.loc;if(!loc)return;
+  state.fee=0;renderFeeTxt("calc");renderTypeTotal();
+  const e=await Rastreio.eta(Rastreio.LOJA,loc);
+  if(state.loc!==loc)return;
+  state.dist=e.metros;state.fee=tarifa(e.metros);
+  renderFeeTxt();renderTypeTotal();
+}
+function renderFeeTxt(m){
+  const el=$("feeTxt");if(!el)return;
+  el.textContent=m==="calc"?"A calcular a taxa de entrega…":state.fee?"Taxa de entrega: "+state.fee+" MT ("+Rastreio.fmtDist(state.dist)+" da lanchonete)":"Taxa de entrega: a partir de 50 MT (conforme a distância)";
+}
 function pedirLoc(){
   if(state.locSt==="busy")return;
   if(!navigator.geolocation){state.locSt="erro";renderLoc();return;}
-  state.loc=null;state.locSt="busy";state.cd=5;renderLoc();
+  state.loc=null;state.fee=0;state.dist=0;state.locSt="busy";state.cd=5;renderLoc();renderTypeTotal();
   let got=null,fail=false,done=false,t0=Date.now();
   const fim=()=>{
     if(done)return;
     if(fail){done=true;clearInterval(_cdT);state.loc=null;state.locSt="erro";renderLoc();return;}
-    if(got&&Date.now()-t0>=5000){done=true;clearInterval(_cdT);state.loc=got;state.locSt="ok";renderLoc();}
+    if(got&&Date.now()-t0>=5000){done=true;clearInterval(_cdT);state.loc=got;state.locSt="ok";renderLoc();calcFee();}
   };
   clearInterval(_cdT);
   _cdT=setInterval(()=>{
@@ -796,7 +810,7 @@ function setMesa(n){
 }
 function renderTypeTotal(){
   $("typeTotal").innerHTML=`<div class="row"><span>Subtotal</span><span>${mt(subtotal())}</span></div>`+
-    (state.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Taxa de entrega</span><span>${mt(FEE)}</span></div>`:"")+
+    (state.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Taxa de entrega${state.dist?" ("+Rastreio.fmtDist(state.dist)+")":""}</span><span>${state.fee?mt(state.fee):"a calcular…"}</span></div>`:"")+
     `<div class="row total"><span>${Ico("dinheiro")}Total</span><span>${mt(total())}</span></div>`;
 }
 function validate(){
@@ -804,6 +818,7 @@ function validate(){
   if(!user||!user.name||!user.phone)return "Faltam o nome e o telefone do cadastro.";
   if(!state.type)return "Escolha Delivery ou Mesa.";
   if(state.type==="Delivery"&&!state.loc)return "Ative a localização do telemóvel para a entrega.";
+  if(state.type==="Delivery"&&!state.fee)return "A calcular a taxa de entrega… tente de novo em instantes.";
   if(state.type==="Mesa"&&!(Number.isInteger(state.mesa)&&state.mesa>=1&&state.mesa<=5))return "Selecione a mesa (1 a 5).";
   return "";
 }
@@ -821,7 +836,7 @@ function goSummary(){
   else h+=`<div class="row"><span>${Ico("cadeira")}Mesa</span><span>${state.mesa}</span></div>`;
   h+=`</div><div class="card"><b>${Ico("carrinho")}Itens</b>`+lines().map(l=>`<div class="row"><span>${l.q}x ${l.n}</span><span>${mt(l.q*l.p)}</span></div>`).join("")+
   `<div class="row"><span>Subtotal</span><span>${mt(subtotal())}</span></div>`+
-  (state.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Taxa de entrega</span><span>${mt(FEE)}</span></div>`:"")+
+  (state.type==="Delivery"?`<div class="row"><span>${Ico("camiao")}Taxa de entrega${state.dist?" ("+Rastreio.fmtDist(state.dist)+")":""}</span><span>${mt(fee())}</span></div>`:"")+
   `<div class="row total"><span>${Ico("dinheiro")}TOTAL</span><span>${mt(total())}</span></div></div>`;
   $("sumBody").innerHTML=h;
   openSheet("sh-sum");
@@ -883,7 +898,7 @@ function sendOrder(){
   pend.push({k:"o"+n+"-"+ts,n,ts,p:{track_id:o.track_id,name:o.name,phone:o.phone,type:o.type,bairro:o.bairro,ref:o.ref,mesa:o.mesa,items:o.items,fee:o.fee,total:o.total}});
   save("kz_pending",pend);syncPending();
   cart={};persistCart();
-  state.type=null;state.bairro="";state.ref="";state.mesa=0;state.loc=null;state.locSt="";
+  state.type=null;state.bairro="";state.ref="";state.mesa=0;state.loc=null;state.fee=0;state.dist=0;state.locSt="";
   setType(null);setMesa(0);
   toast("Compra confirmada. Pedido enviado!");
   if(o.track_id){openTrack(o.track_id);}else{setNav("Pedidos");openSheet("sh-orders");}
