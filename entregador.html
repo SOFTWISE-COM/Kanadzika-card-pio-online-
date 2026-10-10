@@ -123,8 +123,7 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 .push button{height:40px;padding:0 14px;border-radius:12px;background:var(--cyan);color:var(--cyan-d);font-weight:800;font-size:13px}
 
 /* ---------- mapa e painel inferior ---------- */
-.leaflet-container{font-family:inherit;background:#0a1d20}
-.kz-tiles{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55)}
+.leaflet-container{font-family:inherit;background:#e8eef0}
 .leaflet-top.leaflet-left{top:calc(var(--top) + var(--sat))}
 .leaflet-control-attribution{background:rgba(4,37,42,.7)!important;color:#7fa3a6!important;font-size:9px!important}
 .leaflet-control-attribution a{color:#9fc3c6!important}
@@ -223,6 +222,41 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 .done .g{font-size:46px;font-weight:800;color:var(--ok);margin:8px 0 2px}
 .done p{color:var(--muted);font-size:14px;margin-bottom:18px}
 @media (prefers-reduced-motion:reduce){.pn.job::after,.pme::after{animation:none}.alert,.sl-th,.rib::after{transition:none}.done .c{animation:none}}
+
+/* ---------- carteira ---------- */
+.wal{margin-top:12px;border-radius:24px;background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);padding:18px}
+.wal.low{border-color:rgba(255,107,125,.6);background:rgba(255,107,125,.08)}
+.wal .wh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wal .k{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px}
+.wal .v{font-size:34px;font-weight:800;line-height:1.1;margin-top:4px}
+.wal .v small{font-size:16px;margin-left:4px;color:var(--muted)}
+.wal.low .v{color:var(--bad)}
+.wchip{font-size:12px;font-weight:800;padding:5px 10px;border-radius:20px;background:rgba(61,220,151,.14);color:var(--ok);white-space:nowrap}
+.wal.low .wchip{background:rgba(255,107,125,.16);color:var(--bad)}
+.wal p{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 14px}
+.wal.low p{color:var(--text)}
+#wal{position:absolute;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding:calc(14px + var(--sat)) 16px calc(28px + var(--sab))}
+#wal .wt{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+#wal .wt h2{font-size:20px;flex:1}
+#wal .wt button{width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center}
+.wsteps{counter-reset:s}
+.wstep{position:relative;padding:14px 14px 14px 54px;border-radius:18px;background:var(--card);border:1px solid var(--line2);margin-bottom:10px}
+.wstep::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--cyan-d);font-weight:800;display:grid;place-items:center}
+.wstep b{display:block;margin-bottom:8px;font-size:15px}
+.wchips{display:flex;gap:8px;flex-wrap:wrap}
+.wchips button{height:42px;padding:0 16px;border-radius:12px;border:1.5px solid var(--line);font-weight:700}
+.wchips button.on{background:var(--cyan);color:var(--cyan-d);border-color:var(--cyan)}
+.pay{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;border:1.5px solid var(--line);margin-top:8px;background:var(--bg2)}
+.pay.on{border-color:var(--cyan)}
+.pay .m{flex:1;min-width:0}.pay .m b{display:block;margin:0;font-size:14px}.pay .m span{font-size:19px;font-weight:800;letter-spacing:.5px}
+.pay button{height:38px;padding:0 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
+.wlist .wr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:14px}
+.wlist .wr:last-child{border:0}
+.wlist .wr .t{flex:1;min-width:0}.wlist .wr .t span{display:block;color:var(--muted);font-size:12px}
+.wlist .wr .p{font-weight:800}.wlist .p.pos{color:var(--ok)}.wlist .p.neg{color:var(--bad)}
+.rchip{font-size:11px;font-weight:800;padding:3px 8px;border-radius:12px}
+.rchip.pendente{background:rgba(255,176,32,.16);color:var(--amber)}.rchip.aprovada{background:rgba(61,220,151,.14);color:var(--ok)}.rchip.recusada{background:rgba(255,107,125,.16);color:var(--bad)}
+.gerr2{color:var(--bad);font-size:13px;min-height:18px;margin:4px 0 8px}
 </style>
 </head>
 <body>
@@ -259,6 +293,8 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
     <button data-t="msg"></button>
   </nav>
 
+  <section id="wal" class="hidden"></section>
+
   <div class="toast" id="toast"></div>
 </div>
 
@@ -277,8 +313,13 @@ const SUPABASE_KEY='sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y';
 const VAPID_PUBLIC='BLzEsIHLFUQy6OfkwGJrT0cjYCETrqeW3lSLxCbDQrKCm6TTDEJIgBKNIr_latecGCcflYEJoacVLiSiPfCqFys';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const GANHO=50;                 // mínimo por entrega (MT). O valor real = taxa paga pelo cliente (50 MT até 2 km, +10 MT/km extra, máx. 150)
-const ganhoDe=o=>Math.min(150,Math.max(GANHO,Number(o&&o.fee)||GANHO));
+const GANHO=70;                 // taxa mínima por entrega (MT). O valor real = taxa paga pelo cliente (70 MT até 2 km, +10 MT/km extra, máx. 170)
+const bruto=o=>Math.min(170,Number(o&&o.fee)||GANHO);   // taxa paga pelo cliente
+const COMISSAO=20, SALDO_MIN=20;                                        // plataforma: 20 MT fixos por entrega; saldo mínimo = 1 comissão
+const PAGAR={mpesa:'847923879',emola:'878472879'};                       // para onde enviar o dinheiro
+const comissaoDe=o=>COMISSAO;
+const ganhoDe=o=>bruto(o)-comissaoDe(o);                                // o que o entregador fica
+const semSaldo=()=>!!S.drv&&Number(S.drv.saldo||0)<SALDO_MIN;
 const RAIO=5000;                // metros: "perto da lanchonete"
 const LOJA=Rastreio.LOJA;
 const ATIVAS=['aceite','na_loja','a_caminho'];
@@ -300,6 +341,9 @@ const P={
   target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
   out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
   swap:'<path d="M7 7h13l-3-3M17 17H4l3 3"/>',
+  wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v3"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14" r="1.2"/>',
+  copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   send:'<path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
   seta:'<path d="M5 12h14M13 6l6 6-6 6"/>',
   route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/>',
@@ -333,7 +377,7 @@ const d2=(a,b)=>Rastreio.dist(a,b);
 /* ---------- estado ---------- */
 const S={uid:null,user:null,drv:null,online:false,gps:null,pos:null,wake:null,
   avail:[],mine:null,hist:[],histN:0,kmHoje:0,trk:{},msgs:[],unread:0,
-  tab:'dash',sel:null,seen:null,ch:null,poll:null,lastPing:0,lastTrail:null,pendingAlert:null,busy:false,leg:{},fit:''};
+  wal:{tx:[],rec:[]},tab:'dash',sel:null,seen:null,ch:null,poll:null,lastPing:0,lastTrail:null,pendingAlert:null,busy:false,leg:{},fit:''};
 let map=null,M={store:null,me:null,jobs:{},cust:null,r1:null,r1c:null,r2:null,pv:null};
 
 /* =====================================================================
@@ -369,7 +413,7 @@ const meuTel=()=>tel9(String(S.user.email||'').split('@')[0]);
 function gateBase(h){const g=$('gate');g.classList.remove('hidden');g.innerHTML='<img class="logo" src="assets/logo.png" alt="Kanandzika">'+h;}
 function gateRegisto(){
   const m=metaUser();
-  gateBase(`<h1>Trabalhe como entregador</h1><p class="sub">Ganhe a partir de ${GANHO} MT por entrega, e mais quanto mais longe for (+10 MT por km a partir dos 2 km). Preencha os dados abaixo e o dono aprova o seu acesso.</p>
+  gateBase(`<h1>Trabalhe como entregador</h1><p class="sub">Receba a taxa de cada entrega (a partir de 70 MT, mais quanto mais longe). A plataforma cobra ${COMISSAO} MT por entrega, descontados do saldo que você carrega. Preencha os dados abaixo e o dono aprova o seu acesso.</p>
   <label class="fld"><span>Nome</span><input id="gN" value="${esc(m.name||m.nome||'')}" autocomplete="name"></label>
   <label class="fld"><span>Telemóvel</span><input id="gT" value="${esc(meuTel())}" inputmode="tel" maxlength="12"></label>
   <label class="fld"><span>Meio de transporte</span><select id="gV" onchange="$('gP').parentNode.classList.toggle('hidden',['Bicicleta','A pé'].includes(this.value))"><option>Moto</option><option>Bicicleta</option><option>Carro</option><option>A pé</option></select></label>
@@ -416,7 +460,7 @@ function sair(){
 async function abrirApp(){
   clearInterval(S.poll);$('gate').classList.add('hidden');
   paintTop();setTab(S.tab);
-  await Promise.all([carregarPedidos(true),carregarHist(),carregarMsgs(true)]);
+  await Promise.all([carregarPedidos(true),carregarHist(),carregarMsgs(true),carregarWallet(true)]);
   paintAll();
   subscrever();
   S.poll=setInterval(()=>{if(!document.hidden){carregarPedidos();carregarMsgs();}},12000);
@@ -437,15 +481,20 @@ function subscrever(){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'driver_messages',filter:'driver_id=eq.'+S.uid},p=>novaMsg(p.new))
     .on('postgres_changes',{event:'*',schema:'public',table:'drivers',filter:'user_id=eq.'+S.uid},p=>{
       if(p.new&&p.new.status!=='aprovado'){stopGps(true);carregarConta();}
-      else if(p.new){S.drv=Object.assign(S.drv,{name:p.new.name,vehicle:p.new.vehicle,plate:p.new.plate});renderDash();}
+      else if(p.new){const antes=Number(S.drv.saldo||0);S.drv=Object.assign(S.drv,{name:p.new.name,vehicle:p.new.vehicle,plate:p.new.plate,saldo:p.new.saldo});
+        if(p.new.saldo>antes){bip();vibra([120,60,120]);toast('Saldo carregado: +'+mt(p.new.saldo-antes)+' MT. Já pode trabalhar.',4500);}
+        if(semSaldo()&&S.online&&!S.mine){stopGps(false);toast('Saldo esgotado. Carregue para voltar a receber pedidos.',5000);}
+        S.sheetSig='';paintAll();if(!$('wal').classList.contains('hidden'))paintCarteira();carregarWallet();}
     })
+    .on('postgres_changes',{event:'*',schema:'public',table:'wallet_recargas',filter:'driver_id=eq.'+S.uid},()=>carregarWallet())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'wallet_tx',filter:'driver_id=eq.'+S.uid},()=>carregarWallet())
     .subscribe();
 }
 document.addEventListener('visibilitychange',async()=>{
   if(!S.drv||S.drv.status!=='aprovado')return;
   if(!document.hidden){
     if(S.gps!=null&&!S.wake&&navigator.wakeLock){try{S.wake=await navigator.wakeLock.request('screen');}catch(e){}}
-    carregarPedidos();carregarMsgs();carregarHist();
+    carregarPedidos();carregarMsgs();carregarHist();carregarWallet(true);
   }
 });
 
@@ -553,8 +602,9 @@ function renderDash(){
   <div class="me"><div class="av">${av?`<img src="${esc(av)}" alt="">`:I('user','l')}</div>
     <div style="min-width:0"><h2>${esc(d.name||'Entregador')}</h2>
     <div class="meta"><span>${I(Rastreio.veic(d.vehicle),'s')}${esc(d.vehicle)}${d.plate?' · '+esc(d.plate):''}</span><span>${I('phone','s')}+258 ${esc(tel9(d.phone))}</span></div></div></div>
-  <div class="go"><button class="btn ${S.online?'on':'off'}" onclick="toggleOnline()">${I('power')}${S.online?'Ficar offline':'Ficar online e receber pedidos'}</button>
-  <p class="hint">${S.mine?'Tem uma entrega em curso. Termine-a antes de ficar offline.':S.online?'A partilhar a sua posição. Os pedidos novos aparecem no mapa.':'Fique online para ver pedidos perto da lanchonete.'}</p></div>
+  <div class="go"><button class="btn ${S.online?'on':'off'}" onclick="toggleOnline()">${I(semSaldo()&&!S.online?'lock':'power')}${S.online?'Ficar offline':semSaldo()?'Sem saldo · carregue para trabalhar':'Ficar online e receber pedidos'}</button>
+  <p class="hint">${S.mine?'Tem uma entrega em curso. Termine-a antes de ficar offline.':S.online?'A partilhar a sua posição. Os pedidos novos aparecem no mapa.':semSaldo()?'A conta está bloqueada para novos pedidos até carregar saldo.':'Fique online para ver pedidos perto da lanchonete.'}</p></div>
+  ${walletCard()}
   <div class="earn"><div><div class="k">Ganho de hoje</div><div class="v num">${mt(s.g)}<small>MT</small></div></div><div class="r"><b class="num">${s.n}</b>${s.n===1?'entrega':'entregas'}</div></div>
   <div class="grid">
     <div class="st"><div class="k">${I('route','s')}Percorrido hoje</div><div class="v num">${(S.kmHoje/1000).toFixed(1).replace('.',',')}<small>km</small></div></div>
@@ -562,7 +612,7 @@ function renderDash(){
     <div class="st"><div class="k">${I('cash','s')}Últimos 7 dias</div><div class="v num">${mt(s.sem)}<small>MT</small></div></div>
     <div class="st"><div class="k">${I('check','s')}Total de entregas</div><div class="v num">${s.total}</div></div>
   </div>
-  <div class="box"><h3>Ganhos da semana<small>mín. ${GANHO} MT, por distância</small></h3>
+  <div class="box"><h3>Ganhos da semana<small>já sem a comissão</small></h3>
     <div class="week">${s.dias.map(x=>`<div class="d ${x.t?'t':''}"><span class="a num">${x.g?mt(x.g):''}</span><div class="b" style="height:${Math.max(4,Math.round(x.g/max*78))}px"></div><span class="l">${x.t?'hoje':x.l}</span></div>`).join('')}</div></div>
   <div class="box"><h3>Últimas entregas</h3>${S.hist.length?S.hist.slice(0,6).map(o=>`<div class="hrow"><span class="ic">${I('check')}</span><div class="t"><b>Pedido #${o.id}</b><span>${esc(first(o.name))} · ${new Date(o.entregue_em).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})} ${hora(o.entregue_em)}</span></div><span class="p num">+${mt(o.ganho||GANHO)}</span></div>`).join(''):`<div class="empty">Ainda não fez entregas. Fique online e aceite o primeiro pedido.</div>`}</div>
   ${perm!=='granted'&&perm!=='denied'?`<div class="push">${I('bell','l')}<p>Ative os avisos para saber de novos pedidos mesmo com o ecrã apagado.</p><button onclick="ativarPush(true).then(ok=>{toast(ok?'Avisos ativados.':'Não foi possível ativar.');renderDash();})">Ativar</button></div>`:''}
@@ -579,6 +629,7 @@ async function toggleOnline(){
     if(S.mine)return toast('Termine a entrega em curso antes de ficar offline.');
     stopGps(false);return;
   }
+  if(semSaldo()){toast('Sem saldo para a comissão. Carregue o saldo para ficar online.',4500);abrirCarteira();return;}
   try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume&&ac.resume();}catch(e){}
   iniciarGps(false);
 }
@@ -729,6 +780,7 @@ function resumoItens(o){return (o.items||[]).map(i=>(i.q||1)+'x '+(i.n||i.nome||
 function sheetSig(){
   const c=o=>{const k=coordsDe(o);return k?k.lat.toFixed(4)+','+k.lng.toFixed(4):'-';};
   if(S.mine)return 'M'+S.mine.id+S.mine.driver_stage+c(S.mine)+S.mine.total;
+  if(semSaldo())return 'sem-saldo';
   if(!S.online)return 'off';
   return 'A'+S.sel+'|'+S.avail.map(o=>o.id+c(o)).join()+'|'+(S.pos?1:0)+'|'+Math.floor(Date.now()/60000);
 }
@@ -739,6 +791,9 @@ function paintSheet(){
   if(S.drag){S.sheetDirty=true;return;}
   S.sheetSig=sig;
   if(S.mine){b.innerHTML=ativaHTML(S.mine);montaDeslizador(S.mine);sh.classList.remove('min');return;}
+  if(semSaldo()){
+    b.innerHTML=`<div class="sh-t" style="color:var(--bad)">Sem saldo</div><p class="sh-s">Para receber pedidos, a plataforma precisa de ter a comissão (${COMISSAO} MT por entrega) em saldo. Carregue por M-Pesa ou e-Mola.</p><button class="btn" style="margin-top:14px" onclick="abrirCarteira()">${I('wallet')}Carregar saldo</button>`;return;
+  }
   if(!S.online){
     b.innerHTML=`<div class="sh-t">Está offline</div><p class="sh-s">Fique online para ver os pedidos perto da lanchonete e receber avisos.</p><button class="btn" style="margin-top:14px;background:var(--ok);color:#012a1b" onclick="toggleOnline()">${I('power')}Ficar online</button>`;return;
   }
@@ -750,7 +805,7 @@ function paintSheet(){
   b.innerHTML=`<div class="sh-t">${n} ${n===1?'pedido para entregar':'pedidos para entregar'}</div><p class="sh-s">Aceite um pedido para ver a rota até à lanchonete e depois até ao cliente.</p>`+
     S.avail.map(o=>{const c=coordsDe(o),dl=c?d2(LOJA,c)*1.3:null;
       return `<div class="job-c ${S.sel===o.id?'sel':''}" data-job="${o.id}">
-      <div class="job-h"><b>Pedido #${o.id}</b><span class="gain num">+${ganhoDe(o)} MT</span></div>
+      <div class="job-h"><b>Pedido #${o.id}</b><span class="gain num">+${ganhoDe(o)} MT<small style="display:block;font-size:11px;color:var(--muted);font-weight:600;text-align:right">taxa ${bruto(o)} · comissão ${comissaoDe(o)}</small></span></div>
       <div class="job-l">
         <div>${I('pin','s')}${dl!=null?'Cliente a <b class="num">'+Rastreio.fmtDist(dl)+'</b> da lanchonete':'À espera da localização do cliente'}</div>
         <div>${I('moto','s')}${S.pos?'Você está a <b class="num" data-live="meloja">'+Rastreio.fmtDist(d2(S.pos,LOJA))+'</b> da lanchonete':'A obter a sua posição…'}</div>
@@ -828,13 +883,88 @@ function paintMapa_leve(){
   if(S.tab==='map'&&!S.fitInicial&&S.pos){S.fitInicial=true;fitMapa(true);}
 }
 
+
+/* =====================================================================
+   CARTEIRA (saldo pré-pago para a comissão da plataforma)
+   ===================================================================== */
+function walletCard(){
+  const sal=Number(S.drv.saldo||0),low=semSaldo(),n=Math.max(0,Math.floor(sal/COMISSAO));
+  const pend=S.wal.rec.filter(r=>r.estado==='pendente').length;
+  return `<div class="wal ${low?'low':''}">
+    <div class="wh"><div><div class="k">${I('wallet','s')}Saldo na plataforma</div><div class="v num">${mt(sal)}<small>MT</small></div></div>
+    <span class="wchip">${low?'Bloqueado':'Ativo'}</span></div>
+    <p>${low?'<b>Conta bloqueada:</b> sem saldo não pode ficar online, receber avisos nem aceitar pedidos. Carregue para voltar a trabalhar.'
+      :`A plataforma cobra ${COMISSAO} MT por entrega, descontados deste saldo. Dá para ${n} ${n===1?'entrega':'entregas'}.`}${pend?` <b style="color:var(--amber)">${pend} recarga${pend>1?'s':''} à espera de confirmação.</b>`:''}</p>
+    <button class="btn ${low?'':'ghost'}" onclick="abrirCarteira()">${I('wallet')}Carregar saldo</button></div>`;
+}
+async function carregarWallet(forcaConta){
+  if(!S.uid)return;
+  const [c,tx,rec]=await Promise.all([
+    forcaConta?sb.from('drivers').select('saldo,online').eq('user_id',S.uid).maybeSingle():Promise.resolve({data:null}),
+    sb.from('wallet_tx').select('*').eq('driver_id',S.uid).order('created_at',{ascending:false}).limit(30),
+    sb.from('wallet_recargas').select('*').eq('driver_id',S.uid).order('created_at',{ascending:false}).limit(10)]);
+  if(c.data&&S.drv){S.drv.saldo=c.data.saldo;}
+  if(!tx.error)S.wal.tx=tx.data||[];
+  if(!rec.error)S.wal.rec=rec.data||[];
+  if(semSaldo()&&S.online&&!S.mine)stopGps(false);
+  S.sheetSig='';
+  if(S.tab==='dash')renderDash();paintSheet();
+  if(!$('wal').classList.contains('hidden'))paintCarteira();
+}
+const W={valor:100,metodo:'mpesa'};
+function abrirCarteira(){W.valor=100;W.metodo='mpesa';$('wal').classList.remove('hidden');paintCarteira();carregarWallet(true);}
+function fecharCarteira(){$('wal').classList.add('hidden');}
+function paintCarteira(){
+  const el=$('wal');if(!el||el.classList.contains('hidden'))return;
+  const keep=el.querySelector('#wRef')?{r:el.querySelector('#wRef').value,t:el.querySelector('#wTel').value,v:(el.querySelector('#wVal')||{}).value}:null;
+  const sal=Number(S.drv.saldo||0),low=semSaldo();
+  const num=m=>m==='mpesa'?PAGAR.mpesa:PAGAR.emola;
+  const fmtN=n=>n.slice(0,2)+' '+n.slice(2,5)+' '+n.slice(5);
+  el.innerHTML=`<div class="wt"><button onclick="fecharCarteira()" aria-label="Fechar">${I('x')}</button><h2>Carteira</h2></div>
+  <div class="wal ${low?'low':''}" style="margin-top:0"><div class="wh"><div><div class="k">${I('wallet','s')}Saldo na plataforma</div><div class="v num">${mt(sal)}<small>MT</small></div></div><span class="wchip">${low?'Bloqueado':'Ativo'}</span></div>
+  <p style="margin-bottom:0">${low?'Sem saldo: não pode receber pedidos. Carregue abaixo.':`Comissão: ${COMISSAO} MT por entrega, descontados do saldo.`}</p></div>
+
+  <h3 style="margin:18px 2px 10px;font-size:16px">Carregar saldo</h3>
+  <div class="wsteps">
+    <div class="wstep"><b>Escolha o valor</b><div class="wchips">${[50,100,200,300,500].map(v=>`<button class="${W.valor===v?'on':''}" onclick="W.valor=${v};paintCarteira()">${v} MT</button>`).join('')}</div>
+      <label class="fld" style="margin:10px 0 0"><input id="wVal" type="number" inputmode="numeric" min="50" placeholder="Outro valor (mín. 50 MT)" value="${[50,100,200,300,500].includes(W.valor)?'':W.valor}" oninput="W.valor=Math.round(+this.value)||0;document.querySelectorAll('.wchips button').forEach(b=>b.classList.remove('on'))"></label></div>
+    <div class="wstep"><b>Envie o dinheiro</b>
+      ${['mpesa','emola'].map(m=>`<div class="pay ${W.metodo===m?'on':''}" onclick="W.metodo='${m}';paintCarteira()"><div class="m"><b>${m==='mpesa'?'M-Pesa':'e-Mola'}</b><span class="num">${fmtN(num(m))}</span></div><button onclick="event.stopPropagation();copiarNum('${num(m)}')">${I('copy','s')}Copiar</button></div>`).join('')}
+      <p style="color:var(--muted);font-size:12.5px;margin-top:8px;line-height:1.45">Envie para o número do método escolhido e guarde o SMS de confirmação.</p></div>
+    <div class="wstep"><b>Confirme o pagamento</b>
+      <label class="fld"><span>Código da transação (do SMS)</span><input id="wRef" placeholder="Ex.: 9X4KQ2LM" autocapitalize="characters" maxlength="30" value="${esc(keep?keep.r:'')}"></label>
+      <label class="fld" style="margin-bottom:6px"><span>Número de onde enviou</span><input id="wTel" inputmode="tel" maxlength="12" value="${esc(keep?keep.t:tel9(S.drv.phone))}"></label>
+      <div class="gerr2" id="wErr"></div>
+      <button class="btn" id="wBtn" onclick="enviarRecarga()">${I('check')}Já paguei · enviar</button>
+      <p style="color:var(--muted);font-size:12.5px;margin-top:8px;line-height:1.45">O dono confirma o pagamento e o saldo entra. Receberá um aviso aqui.</p></div>
+  </div>
+
+  ${S.wal.rec.length?`<div class="box wlist"><h3>Recargas pedidas</h3>${S.wal.rec.map(r=>`<div class="wr"><div class="t"><b>${mt(r.valor)} MT · ${r.metodo==='mpesa'?'M-Pesa':'e-Mola'}</b><span>${esc(r.ref)} · ${new Date(r.created_at).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})} ${hora(r.created_at)}${r.nota?' · '+esc(r.nota):''}</span></div><span class="rchip ${r.estado}">${{pendente:'À espera',aprovada:'Confirmada',recusada:'Recusada'}[r.estado]}</span></div>`).join('')}</div>`:''}
+  <div class="box wlist"><h3>Movimentos</h3>${S.wal.tx.length?S.wal.tx.map(t=>`<div class="wr"><div class="t"><b>${t.tipo==='recarga'?'Recarga':t.tipo==='comissao'?'Comissão da plataforma':'Ajuste'}</b><span>${esc(t.nota||'')} · ${new Date(t.created_at).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})} ${hora(t.created_at)}</span></div><span class="p num ${t.valor>=0?'pos':'neg'}">${t.valor>=0?'+':''}${mt(t.valor)}</span></div>`).join(''):'<div class="empty">Ainda sem movimentos.</div>'}</div>`;
+  if(keep&&keep.v&&el.querySelector('#wVal')&&!el.querySelector('#wVal').value)el.querySelector('#wVal').value=keep.v;
+}
+function copiarNum(n){try{navigator.clipboard.writeText(n);toast('Número copiado: '+n);}catch(e){toast('Número: '+n);}}
+async function enviarRecarga(){
+  const e=$('wErr');e.textContent='';
+  const ref=$('wRef').value.trim().toUpperCase(),tel=tel9($('wTel').value),v=Math.round(W.valor||+($('wVal')||{}).value||0);
+  if(v<50)return e.textContent='Escolha um valor de 50 MT ou mais.';
+  if(ref.length<6)return e.textContent='Escreva o código da transação que veio no SMS.';
+  $('wBtn').disabled=true;
+  const {data,error}=await sb.rpc('entregador_pedir_recarga',{p_valor:v,p_metodo:W.metodo,p_ref:ref,p_tel:tel});
+  $('wBtn').disabled=false;
+  if(error)return e.textContent=/function|does not exist|schema cache/i.test(error.message)?'Falta correr o carteira.sql no Supabase.':error.message;
+  if(!data.ok)return e.textContent={valor:'Valor inválido.',metodo:'Escolha M-Pesa ou e-Mola.',ref:'Código da transação inválido.',muitas:'Já tem 3 recargas à espera. Aguarde a confirmação.',ref_usada:'Este código de transação já foi usado.'}[data.erro]||'Não foi possível enviar.';
+  toast('Pedido enviado. O dono vai confirmar o pagamento.',4500);vibra(60);
+  await carregarWallet();paintCarteira();$('wal').scrollTo({top:0,behavior:'smooth'});
+}
+
 /* ---------- ações sobre pedidos ---------- */
 async function aceitar(id){
   if(S.busy)return;S.busy=true;
   const {data,error}=await sb.rpc('entregador_aceitar',{p_order:id});
   S.busy=false;
   if(error)return toast('Erro: '+error.message);
-  if(!data.ok){toast(data.erro==='ja_ativa'?'Já tem uma entrega em curso.':'Este pedido já foi aceite por outro entregador.');await carregarPedidos();return;}
+  if(!data.ok){if(data.erro==='sem_saldo'){await carregarWallet(true);toast('Sem saldo para a comissão deste pedido. Carregue saldo.',4500);abrirCarteira();return;}toast(data.erro==='ja_ativa'?'Já tem uma entrega em curso.':'Este pedido já foi aceite por outro entregador.');await carregarPedidos();return;}
   S.sel=null;S.auto=null;S.chegou=null;S.leg={};S.fit='';
   toast('Pedido aceite. Vá à lanchonete.');
   await carregarPedidos();setTab('map');
@@ -847,7 +977,7 @@ async function etapa(id,e,auto){
   S.leg={};S.fit='';
   const o=S.mine;
   await carregarPedidos();
-  if(e==='entregue'){await carregarHist();concluido(o);}
+  if(e==='entregue'){await Promise.all([carregarHist(),carregarWallet(true)]);concluido(o);if(semSaldo()){setTimeout(()=>{toast('Saldo insuficiente para novas entregas. Carregue para continuar.',5000);},2500);}}
   vibra(60);
 }
 async function libertar(){
@@ -860,7 +990,7 @@ async function libertar(){
 }
 function concluido(o){
   const s=stats(),div=document.createElement('div');div.className='done';
-  div.innerHTML=`<div class="c"><div class="ck">${I('check')}</div><h2>Entrega concluída</h2><div class="g num">+${ganhoDe(o)} MT</div><p>Hoje: ${s.n} ${s.n===1?'entrega':'entregas'} · ${mt(s.g)} MT</p><button class="btn" id="dOk">Continuar</button></div>`;
+  div.innerHTML=`<div class="c"><div class="ck">${I('check')}</div><h2>Entrega concluída</h2><div class="g num">+${ganhoDe(o)} MT</div><p style="margin-bottom:4px">Taxa ${bruto(o)} MT · comissão da plataforma ${comissaoDe(o)} MT</p><p>Hoje: ${s.n} ${s.n===1?'entrega':'entregas'} · ${mt(s.g)} MT</p><button class="btn" id="dOk">Continuar</button></div>`;
   $('app').appendChild(div);$('dOk').onclick=()=>{div.remove();};vibra([80,60,80]);
 }
 

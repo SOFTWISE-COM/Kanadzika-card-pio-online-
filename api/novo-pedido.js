@@ -1,6 +1,6 @@
 const webpush = require('web-push');
 const db = require('../lib/db');
-const { LOJA, RAIO_KM, GANHO_ENTREGA } = require('../lib/config');
+const { LOJA, RAIO_KM, GANHO_ENTREGA, COMISSAO } = require('../lib/config');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const rad = (d) => (d * Math.PI) / 180;
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
   if (error) return res.status(500).json({ ok: false });
   if (!ped || !ped.length) return res.json({ ok: true, enviadas: 0 });
 
-  const { data: drv } = await d.from('drivers').select('phone,lat,lng').eq('status', 'aprovado').eq('online', true);
+  const { data: drv } = await d.from('drivers').select('phone,lat,lng').eq('status', 'aprovado').eq('online', true).gte('saldo', COMISSAO); // sem saldo para a comissão = sem avisos
   const perto = (drv || []).filter((x) => x.phone &&
     (x.lat == null || x.lng == null || km(LOJA, { lat: x.lat, lng: x.lng }) <= RAIO_KM));
   if (!perto.length) return res.json({ ok: true, enviadas: 0 });
@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
   webpush.setVapidDetails(process.env.VAPID_EMAIL || 'mailto:admin@kanandzika.app', pub, priv);
   const payload = JSON.stringify({
     title: 'Novo pedido para entregar!',
-    body: `Pedido #${ped[0].id} · ganha ${Math.min(150, Math.max(GANHO_ENTREGA, Number(ped[0].fee) || GANHO_ENTREGA))} MT · toque para ver no mapa`,
+    body: `Pedido #${ped[0].id} · ganha ${Math.min(170, Math.max(GANHO_ENTREGA, Number(ped[0].fee) || GANHO_ENTREGA)) - COMISSAO} MT · toque para ver no mapa`,
     url: 'entregador.html', tag: 'kz-novo-' + ped[0].id,
   });
   const mortas = [];

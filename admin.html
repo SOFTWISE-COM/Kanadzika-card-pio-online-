@@ -416,8 +416,14 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke
       <span class="sum" id="drvSum" style="margin:0"></span>
     </div>
     <div id="drvTeam">
+      <div class="card" id="walCard"><h2>Carteira da plataforma</h2><div class="sub">Os entregadores carregam saldo e a comissão de cada entrega é descontada dele. Sem saldo, ficam bloqueados.</div>
+        <div class="kpis" id="walK" style="margin:10px 0 12px"></div>
+        <div id="recPend"></div>
+        <div class="sub" style="margin:12px 0 4px">Quanto cada um ganha com as taxas de entrega</div>
+        <div id="walTab"></div>
+        <div class="sub" style="margin-top:10px">Os clientes pagam a taxa (70 a 170 MT, por distância). A plataforma fica com 20 MT por entrega e o resto é do entregador. Recargas em <b>M-Pesa 84 792 3879</b> e <b>e-Mola 87 847 2879</b>.</div></div>
       <div class="card pendbox hidden" id="drvPend"><h2>Pedidos de acesso</h2><div class="sub">Pessoas que querem entregar para si. Só entram depois de aprovar.</div><div id="drvPendL"></div></div>
-      <div class="card"><h2>Equipa de entregadores</h2><div class="sub">Ganho por entrega: 50 MT · valores de hoje</div><div id="drvList"></div></div>
+      <div class="card"><h2>Equipa de entregadores</h2><div class="sub">Saldo e ganhos de hoje · o ganho já é sem a comissão da plataforma</div><div id="drvList"></div></div>
     </div>
     <div id="drvLive" class="hidden">
       <div class="card" style="padding:0;overflow:hidden"><div id="liveMap"></div></div>
@@ -1136,7 +1142,7 @@ function fecharEntrega(){
 const ATIVAS=['aceite','na_loja','a_caminho'];
 const ETAPA={aceite:'a caminho da lanchonete',na_loja:'na lanchonete',a_caminho:'a caminho do cliente'};
 const LJ=Rastreio.LOJA;
-let drvs=[],dmsgs=[],drvRt=null,sgD='team';
+let drvs=[],dmsgs=[],wrec=[],drvRt=null,sgD='team';
 let LV={map:null,mk:{},lines:{},fit:false};
 let DV={id:null,map:null,mk:{},line:null,trail:[]};
 const SVG_MOTO='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17 8.5 11h5l2.5 6M13.5 11l-1.2-3.5H10M15.5 7.5h3l1.5 3.5"/></svg>';
@@ -1153,6 +1159,7 @@ function estadoDrv(d){
   if(d.status==='pendente')return ['warn','Pendente'];
   if(d.status==='bloqueado')return ['bad','Bloqueado'];
   if(ativaDe(d.user_id))return ['busy','Em entrega'];
+  if(Number(d.saldo||0)<20)return ['bad','Sem saldo'];
   return isOnline(d)?['live','Online']:['off','Offline'];
 }
 function porAtribuir(){
@@ -1165,10 +1172,12 @@ function drvDoDia(id){
   return {n:L.length,g:L.reduce((s,o)=>s+(Number(o.ganho)||50),0)};
 }
 async function loadDrv(){
-  const [d,m]=await Promise.all([
+  const [d,m,rc]=await Promise.all([
     sb.from('drivers').select('*').order('created_at',{ascending:false}),
-    sb.from('driver_messages').select('*').order('created_at',{ascending:true}).limit(1000)
+    sb.from('driver_messages').select('*').order('created_at',{ascending:true}).limit(1000),
+    sb.from('wallet_recargas').select('*').order('created_at',{ascending:false}).limit(150)
   ]);
+  if(!rc.error)wrec=rc.data||[];
   if(d.error){
     const falta=/relation|does not exist|schema cache/i.test(d.error.message);
     $('drvList').innerHTML='<div class="empty">'+(falta?'Falta correr o ficheiro <b>entregador.sql</b> no Supabase (SQL Editor).':esc(d.error.message))+'</div>';
@@ -1182,7 +1191,7 @@ async function loadDrv(){
 }
 function renderDrv(){
   const pend=drvs.filter(d=>d.status==='pendente'),eq=drvs.filter(d=>d.status!=='pendente');
-  setDot('dD',pend.length+dmsgs.filter(m=>m.sender==='entregador'&&!m.lida).length);
+  setDot('dD',pend.length+wrec.filter(r=>r.estado==='pendente').length+dmsgs.filter(m=>m.sender==='entregador'&&!m.lida).length);
   if($('v-drv').classList.contains('hidden')&&!DV.id)return;
   const on=eq.filter(isOnline).length,ent=eq.filter(d=>ativaDe(d.user_id)).length,livres=porAtribuir().length;
   const dia=eq.map(d=>drvDoDia(d.user_id)),n=dia.reduce((s,x)=>s+x.n,0),g=dia.reduce((s,x)=>s+x.g,0);
@@ -1190,7 +1199,8 @@ function renderDrv(){
     '<div class="kpi"><span>Online agora</span><b class="cy">'+on+'</b><small>'+eq.filter(d=>d.status==='aprovado').length+' na equipa</small></div>'+
     '<div class="kpi"><span>Em entrega</span><b>'+ent+'</b><small>a levar pedidos</small></div>'+
     '<div class="kpi"><span>Sem entregador</span><b style="color:'+(livres?'var(--warn)':'#fff')+'">'+livres+'</b><small>'+(livres&&!on?'ninguém online!':'pedidos por aceitar')+'</small></div>'+
-    '<div class="kpi"><span>Entregas hoje</span><b>'+n+'</b><small>a pagar '+mt(g)+'</small></div>';
+    '<div class="kpi"><span>Entregas hoje</span><b>'+n+'</b><small>entregadores ganharam '+mt(g)+'</small></div>';
+  renderCarteira(eq);
   $('drvSum').textContent=pend.length?pend.length+' pedido(s) de acesso por aprovar':'';
   // pedidos de acesso
   $('drvPend').classList.toggle('hidden',!pend.length);
@@ -1209,12 +1219,57 @@ function linhaDrv(d,pend){
     '<em><span style="display:inline-flex;vertical-align:-5px;margin-right:4px;color:var(--cyan,#00e5ff)">'+svgV(d.vehicle).replace(/width="24" height="24"/,'width="18" height="18"')+'</span>'+esc(d.vehicle||'Moto')+(d.plate?' · '+esc(d.plate):'')+' · <a href="https://wa.me/258'+esc(normPhone(d.phone))+'" target="_blank" rel="noopener" style="color:var(--muted)">'+esc(fmtPhone(d.phone))+'</a></em>'+
     (pend?'<em>Pediu acesso '+esc(fmtDate(d.created_at))+'</em>':
       '<em>'+(a?'Pedido #'+a.id+' · '+ETAPA[a.driver_stage]:isOnline(d)?'Último sinal '+visto(d):'Visto '+(d.loc_at?visto(d):'nunca'))+'</em>'+
-      '<div class="nums"><span><b>'+dia.n+'</b> entregas hoje</span><span><b>'+mt(dia.g)+'</b> a receber</span></div>')+
+      '<div class="nums"><span><b>'+dia.n+'</b> entregas hoje</span><span><b>'+mt(dia.g)+'</b> ganhou hoje</span><span><b style="color:'+(Number(d.saldo||0)<20?'#ff6b7d':'inherit')+'">'+mt(d.saldo||0)+'</b> saldo</span></div>')+
     '<div class="btns">'+
       (pend?'<button class="ok" onclick="statusDrv(\''+id+'\',\'aprovado\')">Aprovar</button><button class="bad" onclick="statusDrv(\''+id+'\',\'bloqueado\')">Recusar</button>'
       :'<button onclick="abrirDrv(\''+id+'\',\'trail\')">'+ICO('moto')+'Trajeto</button><button onclick="abrirDrv(\''+id+'\',\'msg\')"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M21 12a8 8 0 0 1-11.7 7L3 21l2-5.3A8 8 0 1 1 21 12z"/></svg>Mensagem'+(nl?'<span class="dot">'+nl+'</span>':'')+'</button>'+
-        (d.status==='bloqueado'?'<button class="ok" onclick="statusDrv(\''+id+'\',\'aprovado\')">Reativar</button>':'<button class="bad" onclick="statusDrv(\''+id+'\',\'bloqueado\')">Suspender</button>'))+
+        '<button onclick="ajustarSaldo(\''+id+'\')">Saldo</button>'+(d.status==='bloqueado'?'<button class="ok" onclick="statusDrv(\''+id+'\',\'aprovado\')">Reativar</button>':'<button class="bad" onclick="statusDrv(\''+id+'\',\'bloqueado\')">Suspender</button>'))+
     '</div></div></div>';
+}
+
+/* ---------- carteira / comissão ---------- */
+function renderCarteira(eq){
+  const aprov=(eq||drvs).filter(d=>d.status==='aprovado');
+  const t0=inicioHoje().getTime(),t7=t0-6*864e5;
+  const L=orders.filter(o=>o.driver_stage==='entregue'&&o.entregue_em);
+  const som=f=>{const x=L.filter(f);return {n:x.length,taxa:x.reduce((s,o)=>s+(Number(o.ganho)||0)+(Number(o.comissao)||0),0),ent:x.reduce((s,o)=>s+(Number(o.ganho)||0),0),pl:x.reduce((s,o)=>s+(Number(o.comissao)||0),0)};};
+  const H=som(o=>new Date(o.entregue_em).getTime()>=t0),S7=som(o=>new Date(o.entregue_em).getTime()>=t7),T=som(()=>true);
+  const saldoTot=aprov.reduce((s,d)=>s+(Number(d.saldo)||0),0),semS=aprov.filter(d=>Number(d.saldo||0)<20).length;
+  const pend=wrec.filter(r=>r.estado==='pendente');
+  $('walK').innerHTML=
+    '<div class="kpi"><span>Plataforma hoje</span><b class="cy">'+mt(H.pl)+'</b><small>de comissão</small></div>'+
+    '<div class="kpi"><span>Plataforma total</span><b>'+mt(T.pl)+'</b><small>em '+T.n+' entregas</small></div>'+
+    '<div class="kpi"><span>Saldo dos entregadores</span><b>'+mt(saldoTot)+'</b><small>carregados</small></div>'+
+    '<div class="kpi"><span>Sem saldo</span><b style="color:'+(semS?'var(--warn)':'#fff')+'">'+semS+'</b><small>'+(semS?'bloqueados':'todos ativos')+'</small></div>';
+  $('recPend').innerHTML=pend.length?'<div class="pendbox" style="padding:12px;border-radius:14px;margin-bottom:6px"><b>'+pend.length+' recarga'+(pend.length>1?'s':'')+' por confirmar</b>'+pend.map(r=>{
+    const d=drvs.find(x=>x.user_id===r.driver_id),m=r.metodo==='mpesa'?'M-Pesa':'e-Mola';
+    return '<div class="dr" style="margin-top:10px"><div class="inf"><strong>'+esc(d?d.name:'Entregador')+' · '+mt(r.valor)+'</strong>'+
+      '<em>'+m+' · código <b>'+esc(r.ref)+'</b>'+(r.tel_pagador?' · de '+esc(fmtPhone(r.tel_pagador)):'')+'</em><em>'+esc(fmtDate(r.created_at))+'</em>'+
+      '<div class="btns"><button class="ok" onclick="decidirRecarga('+r.id+',true)">Confirmar recebido</button><button class="bad" onclick="decidirRecarga('+r.id+',false)">Recusar</button></div></div></div>';}).join('')+'</div>':'';
+  const lin=(t,x)=>'<tr><td style="padding:6px 8px 6px 0">'+t+'</td><td>'+x.n+'</td><td>'+mt(x.taxa)+'</td><td><b>'+mt(x.ent)+'</b></td><td><b style="color:#00e5ff">'+mt(x.pl)+'</b></td></tr>';
+  $('walTab').innerHTML='<div style="overflow-x:auto"><table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="text-align:left;opacity:.65"><th style="padding-bottom:6px">Período</th><th>Entregas</th><th>Taxas</th><th>Entregadores</th><th>Plataforma</th></tr></thead><tbody>'+lin('Hoje',H)+lin('7 dias',S7)+lin('Total',T)+'</tbody></table></div>';
+}
+async function decidirRecarga(id,ok){
+  const r=wrec.find(x=>x.id===id);if(!r)return;
+  const d=drvs.find(x=>x.user_id===r.driver_id),m=r.metodo==='mpesa'?'M-Pesa':'e-Mola';
+  const txt=ok?'Confirme que recebeu '+mt(r.valor)+' por '+m+' (código '+r.ref+') de '+(d?d.name:'este entregador')+'. O saldo entra agora. Continuar?':'Recusar a recarga de '+mt(r.valor)+'?';
+  if(!confirm(txt))return;
+  const nota=ok?null:(prompt('Motivo (opcional):')||null);
+  const {data,error}=await sb.rpc('admin_recarga_decidir',{p_id:id,p_aprovar:ok,p_nota:nota});
+  if(error)return alert('Erro: '+(/function|schema cache/i.test(error.message)?'falta correr o carteira.sql no Supabase.':error.message));
+  if(!data.ok)alert('Esta recarga já foi tratada.');
+  if(ok&&d)try{pushAviso(d.phone,'Saldo carregado','+'+mt(r.valor)+' na sua carteira. Já pode receber pedidos.',null,null,'entregador.html');}catch(e){}
+  await loadDrv();
+}
+async function ajustarSaldo(id){
+  const d=drvs.find(x=>x.user_id===id);if(!d)return;
+  const v=prompt('Saldo de '+d.name+': '+mt(d.saldo||0)+'.\nQuanto quer somar? (use - para descontar, ex.: -50)');
+  if(v==null)return;const n=Math.round(Number(String(v).replace(',','.')));
+  if(!n)return alert('Valor inválido.');
+  const nota=prompt('Motivo (aparece no extrato do entregador):','Ajuste do dono')||'Ajuste do dono';
+  const {data,error}=await sb.rpc('admin_ajustar_saldo',{p_driver:id,p_valor:n,p_nota:nota});
+  if(error||!data||!data.ok)return alert('Erro: '+(error?error.message:data&&data.erro));
+  await loadDrv();
 }
 async function statusDrv(id,status){
   const d=drvs.find(x=>x.user_id===id);if(!d)return;
@@ -1376,6 +1431,11 @@ function startDrvRealtime(){
         if(i<0){drvs.unshift(n);if(n.status==='pendente')notify('Novo pedido de entregador: '+(n.name||'sem nome'));}
         else drvs[i]=Object.assign(drvs[i],n);
         clearTimeout(startDrvRealtime.t);startDrvRealtime.t=setTimeout(renderDrv,300);
+      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'wallet_recargas'},p=>{
+        const n=p.new;if(!n)return;const i=wrec.findIndex(x=>x.id===n.id);
+        if(i<0){wrec.unshift(n);if(n.estado==='pendente'){const d=drvs.find(x=>x.user_id===n.driver_id);notify('Recarga de '+mt(n.valor)+' pedida por '+(d?d.name:'entregador'));}}else wrec[i]=n;
+        renderDrv();
       })
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'driver_messages'},p=>{
         const m=p.new;if(!m||dmsgs.some(x=>x.id===m.id))return;

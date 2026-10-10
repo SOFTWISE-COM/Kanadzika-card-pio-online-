@@ -513,7 +513,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
     <div id="deliveryBox" style="display:none">
       <div class="card" id="locBox" style="margin:10px 0 6px"></div>
       <p class="muted" style="margin-top:6px">
-        <svg class="ico"><use href="#i-camiao"/></svg> <span id="feeTxt">Taxa de entrega: a partir de 50 MT (conforme a distância)</span>
+        <svg class="ico"><use href="#i-camiao"/></svg> <span id="feeTxt">Taxa de entrega: a partir de 70 MT (conforme a distância)</span>
       </p>
     </div>
 
@@ -619,7 +619,7 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
   </div>
 </div>
 
-<div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa começa em 50 MT e depende da distância) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
+<div class="sheet" id="sh-tut"> <div class="sh-head"> <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button> <h2>Como usar o app</h2> </div> <div class="sh-body steps"> <div class="card">Escolha os seus lanches no ecrã inicial e toque em + para os adicionar ao carrinho.</div> <div class="card">Abra o Carrinho (menu em baixo), ajuste as quantidades e toque em Fazer pedido.</div> <div class="card">Escolha Delivery (indique o bairro; a taxa começa em 70 MT e depende da distância) ou Mesa (escolha a mesa 1 a 5).</div> <div class="card">Confira o resumo e toque em Enviar pedido. O WhatsApp abre com a mensagem pronta; basta enviar.</div> <div class="card">Acompanhe o histórico em Pedidos. Para falar connosco, toque no botão de chamada no topo.</div> </div> </div> 
 <div class="sheet" id="sh-profile">
 <div class="sh-head">
 <button class="sh-back" onclick="closeSheets()" aria-label="Voltar"><svg class="ico so"><use href="#i-voltar"/></svg>Voltar</button>
@@ -640,8 +640,8 @@ body{font-family:Arial,sans-serif;background:#021f24;color:var(--text);overflow:
 const SUPABASE_URL="https://uuuibhgbwqlbylaijwuh.supabase.co";
 const SUPABASE_KEY="sb_publishable_eqqZ031QjqiOsx8tcVqILg_bgHwVZ5y";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const FEE=50;
-const TAR={BASE:50,KM_BASE:2,POR_KM:10,MAX:150};   // MT: 50 até 2 km, +10 MT por km extra (de 0,5 em 0,5 km), máx. 150
+const FEE=70;
+const TAR={BASE:70,KM_BASE:2,POR_KM:10,MAX:170};   // MT: 70 até 2 km, +10 MT por km extra (de 0,5 em 0,5 km), máx. 170
 const tarifa=m=>{const km=m/1000;return km<=TAR.KM_BASE?TAR.BASE:Math.min(TAR.MAX,TAR.BASE+Math.ceil((km-TAR.KM_BASE)*2)*(TAR.POR_KM/2));};
 const BAIRROS=["Matola Rio","Thandavanto","Campoane (Xidiminguana)","Belo Horizonte","Bloco 2","Mazambanine","Tedeco","Escola Secundária de Boane","Escola Secundária Joaquim Chissano","Boane (Vila)"];
 const PRODUCTS={
@@ -784,7 +784,7 @@ async function calcFee(){
 }
 function renderFeeTxt(m){
   const el=$("feeTxt");if(!el)return;
-  el.textContent=m==="calc"?"A calcular a taxa de entrega…":state.fee?"Taxa de entrega: "+state.fee+" MT ("+Rastreio.fmtDist(state.dist)+" da lanchonete)":"Taxa de entrega: a partir de 50 MT (conforme a distância)";
+  el.textContent=m==="calc"?"A calcular a taxa de entrega…":state.fee?"Taxa de entrega: "+state.fee+" MT ("+Rastreio.fmtDist(state.dist)+" da lanchonete)":"Taxa de entrega: a partir de 70 MT (conforme a distância)";
 }
 function pedirLoc(){
   if(state.locSt==="busy")return;
