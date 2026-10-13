@@ -64,7 +64,7 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 .pill.on b{background:var(--ok);box-shadow:0 0 0 4px rgba(59,224,160,.2)}
 
 /* ---------- navegação ---------- */
-.nav{position:absolute;left:0;right:0;bottom:0;z-index:30;height:calc(var(--nav) + var(--sab));padding-bottom:var(--sab);background:var(--bg2);border-top:1px solid var(--line2);display:grid;grid-template-columns:repeat(3,1fr)}
+.nav{position:absolute;left:0;right:0;bottom:0;z-index:30;height:calc(var(--nav) + var(--sab));padding-bottom:var(--sab);background:var(--bg2);border-top:1px solid var(--line2);display:grid;grid-template-columns:repeat(4,1fr)}
 .nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:11.5px;font-weight:700;position:relative}
 .nav button.on{color:var(--cyan)}
 .nav button.on::before{content:"";position:absolute;top:0;width:34px;height:3px;border-radius:0 0 3px 3px;background:var(--cyan)}
@@ -256,6 +256,12 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 .wlist .wr .p{font-weight:800}.wlist .p.pos{color:var(--ok)}.wlist .p.neg{color:var(--bad)}
 .rchip{font-size:11px;font-weight:800;padding:3px 8px;border-radius:12px}
 .rchip.pendente{background:rgba(255,176,32,.16);color:var(--amber)}.rchip.aprovada{background:rgba(61,220,151,.14);color:var(--ok)}.rchip.recusada{background:rgba(255,107,125,.16);color:var(--bad)}
+.tx-hd{display:flex;gap:12px;align-items:center;padding:6px 2px 12px}.tx-hd b{display:block;font-size:17px}.tx-hd span{color:var(--muted);font-size:13px}
+.tx-c{margin-top:12px}.tx-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.tx-price{font-size:34px;font-weight:800;color:var(--ok);line-height:1}.tx-price small{font-size:16px}
+.tx-gain{color:var(--muted);font-size:13px}.tx-gain b{color:var(--text);font-size:15px}
+.tx-l{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line2);font-size:14px;line-height:1.35}
+.tx-l svg{margin-top:2px;color:var(--cyan)}.tx-l small{display:block;color:var(--muted);font-size:11.5px}.tx-l em{color:var(--muted);font-style:normal;font-size:12px}
 .gerr2{color:var(--bad);font-size:13px;min-height:18px;margin:4px 0 8px}
 </style>
 </head>
@@ -281,6 +287,8 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
     <div class="sheet" id="sheet"><button class="grab" onclick="toggleSheet()" aria-label="Abrir ou fechar painel"><i></i></button><div class="body" id="shBody"></div></div>
   </section>
 
+  <section class="view hidden" id="v-taxi"></section>
+
   <section class="view hidden" id="v-msg">
     <div id="thr"></div>
     <div class="qr" id="qr"></div>
@@ -290,6 +298,7 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
   <nav class="nav" id="nav">
     <button data-t="dash" class="on"></button>
     <button data-t="map"></button>
+    <button data-t="taxi"></button>
     <button data-t="msg"></button>
   </nav>
 
@@ -302,6 +311,7 @@ svg.i.s{width:16px;height:16px}svg.i.l{width:26px;height:26px}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="rastreio.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="taxi-entregador.js"></script>
 <script>
 /* =====================================================================
    App do entregador - Kanandzika
@@ -386,7 +396,8 @@ let map=null,M={store:null,me:null,jobs:{},cust:null,r1:null,r1c:null,r2:null,pv
 async function boot(){
   $('nav').children[0].innerHTML=I('dash','l')+'Painel';
   $('nav').children[1].innerHTML=I('map','l')+'Mapa';
-  $('nav').children[2].innerHTML=I('chat','l')+'Mensagens<span class="bd hidden" id="bdM"></span>';
+  $('nav').children[2].innerHTML=I('carro','l')+'Taxi<span class="bd hidden" id="bdT"></span>';
+  $('nav').children[3].innerHTML=I('chat','l')+'Mensagens<span class="bd hidden" id="bdM"></span>';
   $('fabC').innerHTML=I('target','l');
   document.querySelector('.sb button').innerHTML=I('send');
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -460,12 +471,13 @@ function sair(){
 async function abrirApp(){
   clearInterval(S.poll);$('gate').classList.add('hidden');
   paintTop();setTab(S.tab);
-  await Promise.all([carregarPedidos(true),carregarHist(),carregarMsgs(true),carregarWallet(true)]);
+  await Promise.all([carregarPedidos(true),carregarHist(),carregarMsgs(true),carregarWallet(true),window.Taxi?Taxi.refresh(true):0]);
+  if(location.hash==='#taxi')setTab('taxi');
   paintAll();
   subscrever();
-  S.poll=setInterval(()=>{if(!document.hidden){carregarPedidos();carregarMsgs();}},12000);
+  S.poll=setInterval(()=>{if(!document.hidden){carregarPedidos();carregarMsgs();if(window.Taxi)Taxi.refresh();}},12000);
   // retomar: se há entrega ativa, precisa do GPS; se estava online, tenta retomar sem perguntar
-  if(S.mine)iniciarGps(true);
+  if(S.mine||(window.Taxi&&Taxi.ativa()))iniciarGps(true);
   else if(S.drv.online){
     try{const p=await navigator.permissions.query({name:'geolocation'});if(p.state==='granted')iniciarGps(true);else sb.rpc('entregador_online',{p_online:false});}
     catch(e){sb.rpc('entregador_online',{p_online:false});}
@@ -477,13 +489,14 @@ function subscrever(){
   let t;const dq=f=>{clearTimeout(t);t=setTimeout(f,350);};
   S.ch=sb.channel('entregador')
     .on('postgres_changes',{event:'*',schema:'public',table:'orders'},()=>dq(()=>carregarPedidos()))
+    .on('postgres_changes',{event:'*',schema:'public',table:'rides'},()=>dq(()=>window.Taxi&&Taxi.refresh()))
     .on('postgres_changes',{event:'*',schema:'public',table:'order_tracking'},p=>{if(p.new&&p.new.track_id){S.trk[p.new.track_id]=p.new;paintMapa();}})
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'driver_messages',filter:'driver_id=eq.'+S.uid},p=>novaMsg(p.new))
     .on('postgres_changes',{event:'*',schema:'public',table:'drivers',filter:'user_id=eq.'+S.uid},p=>{
       if(p.new&&p.new.status!=='aprovado'){stopGps(true);carregarConta();}
       else if(p.new){const antes=Number(S.drv.saldo||0);S.drv=Object.assign(S.drv,{name:p.new.name,vehicle:p.new.vehicle,plate:p.new.plate,saldo:p.new.saldo});
         if(p.new.saldo>antes){bip();vibra([120,60,120]);toast('Saldo carregado: +'+mt(p.new.saldo-antes)+' MT. Já pode trabalhar.',4500);}
-        if(semSaldo()&&S.online&&!S.mine){stopGps(false);toast('Saldo esgotado. Carregue para voltar a receber pedidos.',5000);}
+        if(semSaldo()&&S.online&&!S.mine&&!(window.Taxi&&Taxi.ativa())){stopGps(false);toast('Saldo esgotado. Carregue para voltar a receber pedidos.',5000);}
         S.sheetSig='';paintAll();if(!$('wal').classList.contains('hidden'))paintCarteira();carregarWallet();}
     })
     .on('postgres_changes',{event:'*',schema:'public',table:'wallet_recargas',filter:'driver_id=eq.'+S.uid},()=>carregarWallet())
@@ -494,7 +507,7 @@ document.addEventListener('visibilitychange',async()=>{
   if(!S.drv||S.drv.status!=='aprovado')return;
   if(!document.hidden){
     if(S.gps!=null&&!S.wake&&navigator.wakeLock){try{S.wake=await navigator.wakeLock.request('screen');}catch(e){}}
-    carregarPedidos();carregarMsgs();carregarHist();carregarWallet(true);
+    carregarPedidos();carregarMsgs();carregarHist();carregarWallet(true);if(window.Taxi)Taxi.refresh();
   }
 });
 
@@ -564,16 +577,17 @@ function badgeM(){const b=$('bdM');if(!b)return;b.textContent=S.unread>9?'9+':S.
 /* ---------- separadores ---------- */
 function setTab(t){
   S.tab=t;
-  ['dash','map','msg'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
+  ['dash','map','taxi','msg'].forEach(k=>$('v-'+k).classList.toggle('hidden',k!==t));
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  $('ttl').textContent={dash:'Meu painel',map:'Mapa',msg:'Mensagens'}[t];
+  $('ttl').textContent={dash:'Meu painel',map:'Mapa',taxi:'Kanandzika-Taxi',msg:'Mensagens'}[t];
   $('top').style.background=t==='map'?'linear-gradient(180deg,rgba(4,37,42,.92) 55%,rgba(4,37,42,0))':'var(--bg)';
   if(t==='dash'){renderDash();carregarHist();}
   if(t==='map'){initMapa();setTimeout(()=>{map.invalidateSize();paintMapa();fitMapa(true);},60);}
+  if(t==='taxi'&&window.Taxi){Taxi.paint();Taxi.refresh();}
   if(t==='msg'){S.unread=0;badgeM();renderMsgs();sb.rpc('entregador_ler_mensagens');S.msgs.forEach(m=>{if(m.sender==='admin')m.lida=true;});}
 }
 $('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t);});
-function paintAll(){paintTop();if(S.tab==='dash')renderDash();paintSheet();paintMapa();}
+function paintAll(){paintTop();if(S.tab==='dash')renderDash();if(S.tab==='taxi'&&window.Taxi)Taxi.paint();paintSheet();paintMapa();}
 function paintTop(){
   const on=S.online;$('pill').classList.toggle('on',on);$('pillTx').textContent=on?'Online':'Offline';
 }
@@ -626,7 +640,7 @@ function renderDash(){
 async function toggleOnline(){
   if(S.busy)return;
   if(S.online){
-    if(S.mine)return toast('Termine a entrega em curso antes de ficar offline.');
+    if(S.mine||(window.Taxi&&Taxi.ativa()))return toast('Termine a entrega/corrida em curso antes de ficar offline.');
     stopGps(false);return;
   }
   if(semSaldo()){toast('Sem saldo para a comissão. Carregue o saldo para ficar online.',4500);abrirCarteira();return;}
@@ -669,6 +683,7 @@ function onFix(pos){
     sb.rpc('entregador_ping',{p_lat:S.pos.lat,p_lng:S.pos.lng,p_heading:c.heading,p_speed:c.speed,p_trail:trail}).then(r=>{if(r.error)toast('Erro ao enviar a posição: '+r.error.message);});
   }
   movido();
+  if(window.Taxi)Taxi.ping();
 }
 
 /* =====================================================================
@@ -906,7 +921,7 @@ async function carregarWallet(forcaConta){
   if(c.data&&S.drv){S.drv.saldo=c.data.saldo;}
   if(!tx.error)S.wal.tx=tx.data||[];
   if(!rec.error)S.wal.rec=rec.data||[];
-  if(semSaldo()&&S.online&&!S.mine)stopGps(false);
+  if(semSaldo()&&S.online&&!S.mine&&!(window.Taxi&&Taxi.ativa()))stopGps(false);
   S.sheetSig='';
   if(S.tab==='dash')renderDash();paintSheet();
   if(!$('wal').classList.contains('hidden'))paintCarteira();

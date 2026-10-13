@@ -92,5 +92,5 @@
       else m.fitBounds(b, { padding: [50, 50], maxZoom: 17 });
     }
   }
-  window.Rastreio = { veic, dist, fmtDist, fmtMin, ago, eta, mapa, marcar, rota, etiqueta, enquadrar, LOJA, S, ICO };
+  window.Rastreio = { pin, veic, dist, fmtDist, fmtMin, ago, eta, mapa, marcar, rota, etiqueta, enquadrar, LOJA, S, ICO };
 })();
